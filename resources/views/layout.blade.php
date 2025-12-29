@@ -21,10 +21,13 @@
                         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Início</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('vacations.*') ? 'active' : '' }}" href="{{ route('vacations.index') }}">Férias</a>
+                        <a class="nav-link {{ request()->routeIs('tools.afinacao') ? 'active' : '' }}" href="{{ route('tools.afinacao') }}">Afinação</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}" href="{{ route('schedules.index') }}">PGMs FDS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('vacations.*') ? 'active' : '' }}" href="{{ route('vacations.index') }}">Férias</a>
                     </li>
                     @if(Auth::user()->profile === 'admin')
                         <li class="nav-item dropdown">

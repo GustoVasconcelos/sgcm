@@ -38,6 +38,11 @@ Route::middleware('auth')->group(function () {
     // CRUD de Programas (Catálogo)
     Route::resource('programs', ProgramController::class);
 
+    // Rota da afinacao
+    Route::get('/afinacao', function () {
+        return view('tools.afinacao');
+    })->name('tools.afinacao');
+
 });
 
 // --- Rotas EXCLUSIVAS de Administrador ---
