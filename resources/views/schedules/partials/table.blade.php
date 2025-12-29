@@ -56,7 +56,7 @@
                     <td>
                         <form action="{{ route('schedules.destroy', $item->id) }}" method="POST">
                             @csrf @method('DELETE')
-                            <button class="btn btn-danger"><i class="bi bi-trash"></i>Excluir</button>
+                            <button class="btn btn-danger"><i class="bi bi-trash"></i></button>
                         </form>
                     </td>
                 </tr>
