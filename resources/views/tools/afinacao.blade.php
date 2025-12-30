@@ -41,7 +41,7 @@
 
 <div class="row mb-3">
     <div class="col-12">
-        <h3><i class="bi bi-stopwatch"></i> Afinação de Jornal</h3>
+        <h3 class="fw-bold"><i class="bi bi-stopwatch"></i> Afinação de Jornal</h3>
     </div>
 </div>
 
@@ -77,7 +77,7 @@
             </div>
 
             <div class="card mb-3 shadow-sm">
-                <div class="card-header bg-secondary text-white fw-bold text-center">TEMPO LIMITE (META)</div>
+                <div class="card-header bg-secondary text-white fw-bold text-center">TEMPO LIMITE</div>
                 <div class="card-body p-2">
                     <input type="text" id="targetInput" class="form-control form-control-lg text-center fw-bold" 
                            placeholder="00:00:00" oninput="formatInput(this);"
@@ -86,7 +86,7 @@
             </div>
 
             <div class="card shadow-lg" id="resultCard">
-                <div class="card-header fw-bold text-center" id="resultTitle">AGUARDANDO META</div>
+                <div class="card-header fw-bold text-center" id="resultTitle">DEFINA O TEMPO LIMITE</div>
                 <div class="card-body text-center p-3">
                     <div id="displayDiff" class="total-display">--:--:--</div>
                     <small id="resultMessage" class="fw-bold text-uppercase mt-2 d-block">Defina o tempo limite</small>
@@ -248,7 +248,7 @@
 
         if (!targetStr || targetStr === "00:00:00") {
             resultCard.className = 'card shadow-lg';
-            resultTitle.innerText = "AGUARDANDO META";
+            resultTitle.innerText = "DEFINA O TEMPO LIMITE";
             displayDiff.innerText = "--:--:--";
             resultMessage.innerText = "Defina o tempo limite";
             return;

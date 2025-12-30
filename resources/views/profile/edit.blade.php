@@ -26,7 +26,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Perfil de Acesso</label>
-                        <input type="text" class="form-control" value="{{ $user->profile == 'admin' ? 'Administrador' : 'Usuário Padrão' }}" readonly>
+                        <input type="text" class="form-control" value="{{ $user->profile == 'admin' ? 'Administrador' : 'Operador' }}" readonly>
                         <small class="text-muted">O nível de acesso não pode ser alterado por aqui.</small>
                     </div>
                 </div>
