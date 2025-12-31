@@ -27,6 +27,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
+    // Rotas das Escalas
+    Route::resource('scales', \App\Http\Controllers\ScaleController::class);
+    Route::get('scales/{scale}/pdf', [\App\Http\Controllers\ScaleController::class, 'pdf'])->name('scales.pdf');
+    Route::post('scales/{scale}/regenerate-day', [\App\Http\Controllers\ScaleController::class, 'regenerateDay'])->name('scales.day.regenerate');
+
+    // Rotas de Relatório RH Escalas
+    Route::get('reports/rh', [\App\Http\Controllers\ScaleController::class, 'rhForm'])->name('reports.rh');
+    Route::post('reports/rh', [\App\Http\Controllers\ScaleController::class, 'rhGenerate'])->name('reports.rh.generate');
+
     // Rota das ferias
     Route::resource('vacations', \App\Http\Controllers\VacationController::class);
 
