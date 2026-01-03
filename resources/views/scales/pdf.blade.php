@@ -66,13 +66,31 @@
                                 @php
                                     $smartUser = $users->firstWhere('id', $shift->user_id);
                                 @endphp
-                                {{ $smartUser ? $smartUser->display_name : 'Usuario Removido' }}
+                                {{ $smartUser ? $smartUser->display_name : '---' }}
                             @else
                                 ---
                             @endif
                         </td>
                     </tr>
                     @endforeach
+
+                    {{-- LÓGICA DE PREENCHIMENTO VISUAL --}}
+                    @php
+                        // Define o padrão máximo de linhas (geralmente 5 para turnos de 6h + folga)
+                        $padraoLinhas = 5; 
+                        $linhasAtuais = count($shifts);
+                        $linhasFaltantes = $padraoLinhas - $linhasAtuais;
+                    @endphp
+
+                    {{-- Se faltar linha (ex: turno de 8h que só tem 4), cria linhas vazias --}}
+                    @if($linhasFaltantes > 0)
+                        @for($i = 0; $i < $linhasFaltantes; $i++)
+                            <tr>
+                                <td class="time-col">&nbsp;</td> {{-- &nbsp; garante que a linha tenha altura --}}
+                                <td class="name-col">&nbsp;</td>
+                            </tr>
+                        @endfor
+                    @endif
                 </table>
             </div>
         @endforeach

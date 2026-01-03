@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="card shadow" style="max-width: 800px; margin: 50px auto;">
-    <div class="card-header text-white">
+    <div class="card-header">
         <h4 class="mb-0"><i class="bi bi-calendar-range"></i> Gerenciador de Escalas</h4>
     </div>
     <div class="card-body">

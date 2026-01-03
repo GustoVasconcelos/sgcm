@@ -34,7 +34,7 @@
                     {{-- Botão Mago --}}
                     <td>
                         <button onclick="toggleStatus(this, {{ $item->id }}, 'mago')" 
-                                class="btn btn-sm w-100 btn-mago {{ $item->status_mago ? 'btn-toggle-on' : 'btn-toggle-off' }}">
+                                class="btn btn-secondary w-100 btn-mago {{ $item->status_mago ? 'btn-toggle-on' : 'btn-toggle-off' }}">
                             {{ $item->status_mago ? 'OK' : 'Pendente' }}
                         </button>
                     </td>
@@ -42,7 +42,7 @@
                     {{-- Botão Verificação --}}
                     <td>
                         <button onclick="toggleStatus(this, {{ $item->id }}, 'verification')" 
-                                class="btn btn-sm w-100 btn-verif {{ $item->status_verification ? 'btn-toggle-on' : 'btn-toggle-off' }}">
+                                class="btn btn-secondary w-100 btn-verif {{ $item->status_verification ? 'btn-toggle-on' : 'btn-toggle-off' }}">
                             {{ $item->status_verification ? 'OK' : 'Pendente' }}
                         </button>
                     </td>

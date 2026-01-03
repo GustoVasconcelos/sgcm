@@ -32,14 +32,14 @@
             <div class="col-md-4 mb-4">
                 <div class="card h-100 shadow-sm border-1">
                     
-                    <div class="card-header d-flex justify-content-between align-items-center text-white">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         
                         <span class="fw-bold">
                             {{ $date->format('d/m') }} - {{ mb_strtoupper($date->locale('pt_BR')->dayName, 'UTF-8') }}
                         </span>
 
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-link text-white p-0" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-gear-fill"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
@@ -69,16 +69,19 @@
                                         <select name="slots[{{ $uniqueKey }}]" class="form-select form-select-sm {{ $shift->user_id ? 'border-success fw-bold' : '' }}">
                                             <option value="">-- Selecione --</option>
                                             
+                                            @if($shift->name == 'FOLGA' && isset($idNaoHa))
+                                                <option value="{{ $idNaoHa }}" class="fw-bold text-danger" {{ $shift->user_id == $idNaoHa ? 'selected' : '' }}>
+                                                    NÃO HÁ
+                                                </option>
+                                            @endif
+
                                             @if(isset($users) && count($users) > 0)
                                                 @foreach($users as $u)
                                                     <option value="{{ $u->id }}" {{ $shift->user_id == $u->id ? 'selected' : '' }}>
                                                         {{ $u->display_name }}
                                                     </option>
                                                 @endforeach
-                                            @else
-                                                <option disabled>Sem operadores</option>
                                             @endif
-
                                         </select>
                                     </td>
                                 </tr>

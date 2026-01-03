@@ -82,10 +82,15 @@ class ScaleController extends Controller
             $current->addDay();
         }
 
-        // AQUI ESTAVA O PROBLEMA: Chamamos a função restaurada abaixo
+        // Pega a lista de operadores (que agora NÃO traz o "NÃO HÁ")
         $users = $this->getOperators(); 
 
-        return view('scales.edit', compact('days', 'users', 'start', 'end'));
+        // Busca o ID do usuário Coringa separadamente
+        $userNaoHa = User::where('name', 'NÃO HÁ')->first();
+        $idNaoHa = $userNaoHa ? $userNaoHa->id : null;
+
+        // Passa o $idNaoHa para a view
+        return view('scales.edit', compact('days', 'users', 'start', 'end', 'idNaoHa'));
     }
 
     // Salva as alterações
@@ -152,7 +157,11 @@ class ScaleController extends Controller
     private function getOperators()
     {
         // 1. Busca quem NÃO é admin
-        $users = User::where('profile', '!=', 'admin')->orderBy('name')->get();
+        // Adicionei ->where('name', '!=', 'NÃO HÁ')
+        $users = User::where('profile', '!=', 'admin')
+            ->where('name', '!=', 'NÃO HÁ') 
+            ->orderBy('name')
+            ->get();
 
         // 2. Lógica do Nome Repetido
         $firstNameCounts = $users->map(function ($user) {
@@ -173,10 +182,6 @@ class ScaleController extends Controller
 
         return $users;
     }
-    
-    // Métodos de PDF/RH antigos (Mantenha se estiver usando)
-    public function rhForm() { return view('reports.rh'); }
-    public function rhGenerate(Request $request) { /* ... lógica do PDF ... */ }
 
     public function print(Request $request)
     {
@@ -236,6 +241,18 @@ class ScaleController extends Controller
         // para que a função ->chunk(2) funcione no PDF
         $days = collect($days); 
 
+        // --- CORREÇÃO START: Injetar o "NÃO HÁ" na lista do PDF ---
+        $userNaoHa = \App\Models\User::where('name', 'NÃO HÁ')->first();
+        
+        if ($userNaoHa) {
+            // Define o display_name manualmente, pois o getOperators não calculou pra ele
+            $userNaoHa->display_name = 'NÃO HÁ';
+            
+            // Empurra ele para dentro da coleção de usuários
+            $users->push($userNaoHa);
+        }
+        // --- CORREÇÃO END ---
+
         // 5. Configurações do PDF
         $startDate = $start;
         $endDate = $end;
@@ -244,6 +261,6 @@ class ScaleController extends Controller
         $pdf = Pdf::loadView('scales.pdf', compact('days', 'users', 'startDate', 'endDate', 'reportTitle'));
         $pdf->setPaper('a4', 'portrait');
 
-        return $pdf->stream('escala_' . $start->format('dm') . '_ate_' . $end->format('dm') . '.pdf');
+        return $pdf->stream('ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf');
     }
 }

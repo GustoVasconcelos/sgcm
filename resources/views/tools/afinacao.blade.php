@@ -72,7 +72,7 @@
             <div class="card mb-3 shadow-sm">
                 <div class="card-header bg-dark text-white fw-bold text-center">SOMA TOTAL</div>
                 <div class="card-body text-center p-2">
-                    <div id="displaySum" class="total-display text-white">00:00:00</div>
+                    <div id="displaySum" class="total-display">00:00:00</div>
                 </div>
             </div>
 
@@ -142,14 +142,14 @@
                     <span class="badge bg-secondary rounded-pill" hidden style="width: 25px;">${index + 1}</span>
                 </div>
                 <div class="col">
-                    <input type="text" class="form-control input-time text-white" 
+                    <input type="text" class="form-control input-time" 
                            placeholder="00:00:00" value="${value}"
                            oninput="formatInput(this)" onfocus="this.select()">
                 </div>
                 
                 <div class="col-auto" style="min-width: 80px;">
-                    <span class="acc-label text-white" hidden>Acumulado</span>
-                    <span class="acc-display text-white">--:--:--</span>
+                    <span class="acc-label" hidden>Acumulado</span>
+                    <span class="acc-display">--:--:--</span>
                 </div>
 
                 <div class="col-auto">
