@@ -6,7 +6,7 @@
     .input-time {
         font-family: 'Courier New', monospace;
         font-weight: bold;
-        font-size: 1.1rem;
+        font-size: 1.5rem;
         text-align: center;
     }
     
@@ -23,7 +23,7 @@
     /* NOVO: Estilo do Acumulado */
     .acc-display {
         font-family: 'Courier New', monospace;
-        font-size: 0.9rem;
+        font-size: 1.3rem;
         color: #6c757d; /* Cinza */
         font-weight: bold;
         display: block;

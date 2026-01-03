@@ -27,10 +27,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-    // Rotas das Escalas
-    Route::resource('scales', \App\Http\Controllers\ScaleController::class);
-    Route::get('scales/{scale}/pdf', [\App\Http\Controllers\ScaleController::class, 'pdf'])->name('scales.pdf');
-    Route::post('scales/{scale}/regenerate-day', [\App\Http\Controllers\ScaleController::class, 'regenerateDay'])->name('scales.day.regenerate');
+    // Novas Rotas de Escala Contínua
+    Route::get('scales', [\App\Http\Controllers\ScaleController::class, 'index'])->name('scales.index');
+    Route::get('scales/manage', [\App\Http\Controllers\ScaleController::class, 'manage'])->name('scales.manage');
+    Route::post('scales/store', [\App\Http\Controllers\ScaleController::class, 'store'])->name('scales.store');
+    Route::get('scales/print', [\App\Http\Controllers\ScaleController::class, 'print'])->name('scales.print');
+    
+    // Rota de Regenerar Dia (agora não precisa do ID da escala na URL)
+    Route::post('scales/regenerate', [\App\Http\Controllers\ScaleController::class, 'regenerateDay'])->name('scales.day.regenerate');
 
     // Rotas de Relatório RH Escalas
     Route::get('reports/rh', [\App\Http\Controllers\ScaleController::class, 'rhForm'])->name('reports.rh');

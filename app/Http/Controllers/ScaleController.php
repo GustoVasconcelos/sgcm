@@ -2,222 +2,170 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Scale;
 use App\Models\ScaleShift;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf; // Importante para o PDF
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class ScaleController extends Controller
 {
-    public function index()
+    // Tela Inicial: Seleção de Período
+    public function index(Request $request)
     {
-        $scales = Scale::orderBy('start_date', 'desc')->paginate(10);
-        return view('scales.index', compact('scales'));
-    }
-
-    public function create()
-    {
-        return view('scales.create');
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'type' => 'required'
-        ]);
-
-        // CORREÇÃO: Força a semana a começar na Segunda-Feira
-        $start = Carbon::parse($request->start_date)->startOfWeek(\Carbon\Carbon::MONDAY);
-        $end = $start->copy()->addDays(6);
-
-        // 1. Cria a Escala (Capa)
-        $scale = Scale::create([
-            'start_date' => $start,
-            'end_date' => $end,
-            'type' => $request->type,
-            'user_id' => Auth::id()
-        ]);
-
-        // 2. Gera os Slots para os 7 dias (Segunda até Domingo)
-        for ($i = 0; $i < 7; $i++) {
-            $currentDate = $start->copy()->addDays($i);
-            
-            // Definição dos Turnos (Padrão Normal)
-            $shifts = [
-                ['name' => '06:00 - 12:00', 'order' => 1],
-                ['name' => '12:00 - 18:00', 'order' => 2],
-                ['name' => '18:00 - 00:00', 'order' => 3],
-                ['name' => '00:00 - 06:00', 'order' => 4],
-                ['name' => 'FOLGA',         'order' => 5],
-            ];
-
-            // Se for modo Férias E o dia for entre Domingo e Quinta (Regra de 8h)
-            // Nota: Domingo é dia 0, Segunda 1... Quinta 4, Sexta 5, Sábado 6 no Carbon
-            // Mas sua regra é: Turnos de 8h "geralmente de domingo a quinta".
-            // Como a escala começa na SEGUNDA, vamos aplicar a regra nos dias corretos.
-            if ($request->type == 'ferias') {
-                // Verifica se é Sexta ou Sábado (mantém 6h). Se não, usa 8h.
-                // isFriday() ou isSaturday() mantém normal. O resto muda.
-                if (!$currentDate->isFriday() && !$currentDate->isSaturday()) {
-                    $shifts = [
-                        ['name' => '06:00 - 14:00', 'order' => 1],
-                        ['name' => '14:00 - 22:00', 'order' => 2],
-                        ['name' => '22:00 - 06:00', 'order' => 3], // Madrugada
-                        ['name' => 'FOLGA',         'order' => 4],
-                    ];
-                }
-            }
-
-            foreach ($shifts as $shift) {
-                ScaleShift::create([
-                    'scale_id' => $scale->id,
-                    'date' => $currentDate,
-                    'name' => $shift['name'],
-                    'order' => $shift['order'],
-                    'user_id' => null
-                ]);
-            }
+        if ($request->has(['start_date', 'end_date'])) {
+            return redirect()->route('scales.manage', [
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date
+            ]);
         }
 
-        return redirect()->route('scales.edit', $scale->id)->with('success', 'Escala criada! Agora defina os operadores.');
+        return view('scales.index');
     }
 
-    public function edit(Scale $scale)
+    // Tela de Edição/Visualização (O "Calendário")
+    public function manage(Request $request)
     {
-        $days = $scale->shifts()
-            ->orderBy('date', 'asc')
-            ->orderBy('order', 'asc')
+        $start = $request->start_date ? Carbon::parse($request->start_date) : Carbon::today();
+        $end = $request->end_date ? Carbon::parse($request->end_date) : Carbon::today()->addDays(6);
+        
+        if ($end->diffInDays($start) > 40) {
+            return back()->with('error', 'Selecione um período de no máximo 40 dias.');
+        }
+
+        // 1. Busca os turnos JÁ EXISTENTES
+        $existingShifts = ScaleShift::whereBetween('date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->orderBy('date')
+            ->orderBy('order')
             ->get()
             ->groupBy(function($item) {
                 return $item->date->format('Y-m-d');
             });
 
-        // Usa a nossa função inteligente em vez de User::all()
-        $users = $this->getOperators();
+        // 2. Monta a estrutura final
+        $days = [];
+        $current = $start->copy();
 
-        return view('scales.edit', compact('scale', 'days', 'users'));
-    }
+        while ($current <= $end) {
+            $dateStr = $current->format('Y-m-d');
 
-    public function update(Request $request, Scale $scale)
-    {
-        // Verifica se existem slots para atualizar
-        $data = $request->input('slots');
+            // Tenta pegar os turnos do dia
+            $shiftsForDay = $existingShifts->get($dateStr);
 
-        if (is_array($data)) {
-            foreach ($data as $shiftId => $userId) {
-                $shift = ScaleShift::find($shiftId);
-                if ($shift) {
-                    $shift->user_id = $userId; // Se vier null, salva null
-                    $shift->save();
+            if ($shiftsForDay && $shiftsForDay->isNotEmpty()) {
+                $days[$dateStr] = $shiftsForDay;
+            } else {
+                // Gera estrutura vazia na memória se não existir
+                $fakeShifts = collect([]);
+                $defaults = [
+                    ['name' => '06:00 - 12:00', 'order' => 1],
+                    ['name' => '12:00 - 18:00', 'order' => 2],
+                    ['name' => '18:00 - 00:00', 'order' => 3],
+                    ['name' => '00:00 - 06:00', 'order' => 4],
+                    ['name' => 'FOLGA',         'order' => 5],
+                ];
+
+                foreach ($defaults as $def) {
+                    $fakeShift = new ScaleShift([
+                        'date' => $dateStr,
+                        'name' => $def['name'],
+                        'order' => $def['order'],
+                        'user_id' => null
+                    ]);
+                    $fakeShift->exists = false; 
+                    $fakeShifts->push($fakeShift);
                 }
+                $days[$dateStr] = $fakeShifts;
             }
-            return redirect()->route('scales.index')->with('success', 'Escala salva com sucesso!');
+
+            $current->addDay();
         }
 
-        // Se não tiver dados (ex: formulário vazio), apenas redireciona sem erro
-        return redirect()->route('scales.edit', $scale->id)->with('warning', 'Nenhuma alteração detectada.');
+        // AQUI ESTAVA O PROBLEMA: Chamamos a função restaurada abaixo
+        $users = $this->getOperators(); 
+
+        return view('scales.edit', compact('days', 'users', 'start', 'end'));
     }
 
-    public function destroy(Scale $scale)
+    // Salva as alterações
+    public function store(Request $request)
     {
-        $scale->delete();
-        return back()->with('success', 'Escala excluída.');
+        $slots = $request->input('slots', []);
+        $names = $request->input('names', []);
+
+        foreach ($slots as $key => $userId) {
+            [$date, $order] = explode('_', $key);
+
+            ScaleShift::updateOrCreate(
+                [
+                    'date' => $date,
+                    'order' => $order
+                ],
+                [
+                    'user_id' => $userId,
+                    'name' => $names[$key] ?? 'Turno Padrão',
+                ]
+            );
+        }
+
+        return redirect()->route('scales.manage', [
+            'start_date' => $request->start_date, 
+            'end_date' => $request->end_date
+        ])->with('success', 'Escala atualizada com sucesso!');
     }
 
-    // --- GERAÇÃO DO PDF ---
-    public function pdf(Scale $scale)
+    // Regenerar Dia
+    public function regenerateDay(Request $request)
     {
-        $days = $scale->shifts->groupBy(function($item) {
-            return $item->date->format('Y-m-d');
-        });
+        $date = $request->date;
+        ScaleShift::where('date', $date)->delete();
 
-        $users = $this->getOperators();
-
-        // Passamos explicitamente startDate e endDate para padronizar com o relatório RH
-        $startDate = $scale->start_date;
-        $endDate = $scale->end_date;
-        $reportTitle = 'ESCALA EXIBIÇÃO'; // Título Padrão
-
-        $pdf = Pdf::loadView('scales.pdf', compact('days', 'users', 'startDate', 'endDate', 'reportTitle'));
-        $pdf->setPaper('a4', 'portrait');
-
-        return $pdf->stream('escala_semana.pdf');
-    }
-
-    // Alteração dos slots
-    public function regenerateDay(Request $request, Scale $scale)
-    {
-        $request->validate([
-            'date' => 'required|date',
-            'mode' => 'required|in:6h,8h' // 6h = Normal, 8h = Férias
-        ]);
-
-        $targetDate = $request->date;
-        $mode = $request->mode;
-
-        // 1. Apaga os turnos existentes APENAS naquele dia e naquela escala
-        ScaleShift::where('scale_id', $scale->id)
-                ->where('date', $targetDate)
-                ->delete();
-
-        // 2. Define os novos turnos baseados no modo escolhido
-        if ($mode == '8h') {
-            // Modo Férias (3 turnos de 8h + Folga)
-            $newShifts = [
+        $newShifts = ($request->mode == '8h') ? 
+            [
                 ['name' => '06:00 - 14:00', 'order' => 1],
                 ['name' => '14:00 - 22:00', 'order' => 2],
-                ['name' => '22:00 - 06:00', 'order' => 3], // Madrugada
+                ['name' => '22:00 - 06:00', 'order' => 3],
                 ['name' => 'FOLGA',         'order' => 4],
-            ];
-        } else {
-            // Modo Normal (4 turnos de 6h + Folga)
-            $newShifts = [
+            ] : 
+            [
                 ['name' => '06:00 - 12:00', 'order' => 1],
                 ['name' => '12:00 - 18:00', 'order' => 2],
                 ['name' => '18:00 - 00:00', 'order' => 3],
                 ['name' => '00:00 - 06:00', 'order' => 4],
                 ['name' => 'FOLGA',         'order' => 5],
             ];
-        }
 
-        // 3. Cria os novos slots no banco
         foreach ($newShifts as $shift) {
             ScaleShift::create([
-                'scale_id' => $scale->id,
-                'date' => $targetDate,
+                'date' => $date,
                 'name' => $shift['name'],
                 'order' => $shift['order'],
-                'user_id' => null // Reinicia vazio para o usuário preencher
+                'user_id' => null
             ]);
         }
 
-        return back()->with('success', 'Layout do dia ' . date('d/m', strtotime($targetDate)) . ' atualizado com sucesso!');
+        return back()->with('success', 'Layout atualizado!');
     }
 
+    // --- FUNÇÃO PRIVADA RESTAURADA ---
     private function getOperators()
     {
-        // 1. Busca apenas quem NÃO é admin (profile != 'admin')
-        // Ajuste 'profile' para o nome exato da sua coluna se for diferente (ex: 'role', 'tipo')
+        // 1. Busca quem NÃO é admin
         $users = User::where('profile', '!=', 'admin')->orderBy('name')->get();
 
-        // 2. Conta quantas vezes cada primeiro nome aparece
+        // 2. Lógica do Nome Repetido
         $firstNameCounts = $users->map(function ($user) {
-            return explode(' ', trim($user->name))[0]; // Pega só o primeiro nome
-        })->countBy(); // Retorna ex: ['Gabriel' => 2, 'Augusto' => 1]
+            return explode(' ', trim($user->name))[0];
+        })->countBy();
 
-        // 3. Adiciona o atributo 'display_name' em cada usuário
         $users->transform(function ($user) use ($firstNameCounts) {
             $firstName = explode(' ', trim($user->name))[0];
             
-            // Se existir mais de 1 pessoa com esse primeiro nome, usa o Nome Completo
-            // Senão, usa só o Primeiro Nome
             if (isset($firstNameCounts[$firstName]) && $firstNameCounts[$firstName] > 1) {
-                $user->display_name = $user->name; // Completo
+                $user->display_name = $user->name; 
             } else {
-                $user->display_name = strtoupper($firstName); // Curto (em Maiúsculo fica bonito na escala)
+                $user->display_name = strtoupper($firstName);
             }
             
             return $user;
@@ -225,46 +173,77 @@ class ScaleController extends Controller
 
         return $users;
     }
+    
+    // Métodos de PDF/RH antigos (Mantenha se estiver usando)
+    public function rhForm() { return view('reports.rh'); }
+    public function rhGenerate(Request $request) { /* ... lógica do PDF ... */ }
 
-    // Exibe o formulário
-    public function rhForm()
+    public function print(Request $request)
     {
-        return view('reports.rh');
-    }
+        // 1. Define as datas
+        $start = $request->start_date ? Carbon::parse($request->start_date) : Carbon::today();
+        $end = $request->end_date ? Carbon::parse($request->end_date) : Carbon::today()->addDays(6);
 
-    // Gera o Relatório Customizado
-    public function rhGenerate(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-        ]);
+        // 2. Busca o que já existe no banco
+        $existingShifts = ScaleShift::whereBetween('date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->orderBy('date')
+            ->orderBy('order')
+            ->get()
+            ->groupBy(function($item) {
+                return $item->date->format('Y-m-d');
+            });
 
-        $start = Carbon::parse($request->start_date);
-        $end = Carbon::parse($request->end_date);
+        // 3. Monta a grade (Preenchendo dias vazios com "fakes")
+        $days = [];
+        $current = $start->copy();
 
-        // Busca TODOS os turnos nesse intervalo, independente da escala
-        $shifts = ScaleShift::whereBetween('date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
-            ->orderBy('date', 'asc')
-            ->orderBy('order', 'asc')
-            ->get();
+        while ($current <= $end) {
+            $dateStr = $current->format('Y-m-d');
+            $shiftsForDay = $existingShifts->get($dateStr);
 
-        // Agrupa por dia para o layout funcionar
-        $days = $shifts->groupBy(function($item) {
-            return $item->date->format('Y-m-d');
-        });
+            if ($shiftsForDay && $shiftsForDay->isNotEmpty()) {
+                $days[$dateStr] = $shiftsForDay;
+            } else {
+                // Gera estrutura vazia na memória
+                $fakeShifts = collect([]);
+                $defaults = [
+                    ['name' => '06:00 - 12:00', 'order' => 1],
+                    ['name' => '12:00 - 18:00', 'order' => 2],
+                    ['name' => '18:00 - 00:00', 'order' => 3],
+                    ['name' => '00:00 - 06:00', 'order' => 4],
+                    ['name' => 'FOLGA',         'order' => 5],
+                ];
 
-        // Pega os usuários inteligentes
+                foreach ($defaults as $def) {
+                    $fakeShift = new ScaleShift([
+                        'date' => $dateStr,
+                        'name' => $def['name'],
+                        'order' => $def['order'],
+                        'user_id' => null
+                    ]);
+                    $fakeShifts->push($fakeShift);
+                }
+                $days[$dateStr] = $fakeShifts;
+            }
+            $current->addDay();
+        }
+
+        // 4. Pega os usuários
         $users = $this->getOperators();
 
-        // Variáveis para a View
+        // --- CORREÇÃO AQUI ---
+        // Convertemos o array $days para uma Collection do Laravel
+        // para que a função ->chunk(2) funcione no PDF
+        $days = collect($days); 
+
+        // 5. Configurações do PDF
         $startDate = $start;
         $endDate = $end;
-        $reportTitle = 'RELATÓRIO DE ESCALAS (RH)';
+        $reportTitle = 'ESCALA DE TRABALHO'; 
 
         $pdf = Pdf::loadView('scales.pdf', compact('days', 'users', 'startDate', 'endDate', 'reportTitle'));
         $pdf->setPaper('a4', 'portrait');
 
-        return $pdf->stream('relatorio_rh.pdf');
+        return $pdf->stream('escala_' . $start->format('dm') . '_ate_' . $end->format('dm') . '.pdf');
     }
 }

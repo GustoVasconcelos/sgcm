@@ -1,13 +1,26 @@
 @extends('layout')
 
 @section('content')
-<form action="{{ route('scales.update', $scale->id) }}" method="POST" id="mainForm">
-    @csrf @method('PUT')
+<form action="{{ route('scales.store') }}" method="POST" id="mainForm">
+    @csrf
     
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Preencher Escala: {{ $scale->start_date->format('d/m') }} a {{ $scale->end_date->format('d/m') }}</h4>
+    <input type="hidden" name="start_date" value="{{ $start->format('Y-m-d') }}">
+    <input type="hidden" name="end_date" value="{{ $end->format('Y-m-d') }}">
+
+    <div class="d-flex justify-content-between align-items-center mb-3 py-3 border-bottom" style="z-index: 1000;">
+        <h4 class="m-0">
+            <i class="bi bi-calendar3"></i> 
+            Escalas de {{ $start->format('d/m') }} a {{ $end->format('d/m') }}
+        </h4>
         <div>
-            <a href="{{ route('scales.index') }}" class="btn btn-secondary me-2">Voltar</a>
+            <a href="{{ route('scales.print', ['start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]) }}" 
+            target="_blank" 
+            class="btn btn-danger me-2">
+                <i class="bi bi-file-pdf"></i> Baixar PDF
+            </a>
+
+            <a href="{{ route('scales.index') }}" class="btn btn-secondary me-2">Trocar Datas</a>
+            
             <button type="submit" class="btn btn-success">Salvar Alterações</button>
         </div>
     </div>
@@ -17,64 +30,65 @@
             @php $date = \Carbon\Carbon::parse($dateString); @endphp
             
             <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm border-0">
+                <div class="card h-100 shadow-sm border-1">
                     
-                    <div class="card-header d-flex justify-content-between align-items-center text-white 
-                        {{ $date->isToday() ? 'bg-primary' : 'bg-dark' }}">
+                    <div class="card-header d-flex justify-content-between align-items-center text-white">
                         
                         <span class="fw-bold">
                             {{ $date->format('d/m') }} - {{ mb_strtoupper($date->locale('pt_BR')->dayName, 'UTF-8') }}
                         </span>
 
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-link text-white text-decoration-none p-0" type="button" data-bs-toggle="dropdown" title="Alterar Layout do Dia">
+                            <button class="btn btn-sm btn-link text-white p-0" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-gear-fill"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li><h6 class="dropdown-header">Layout do Turno</h6></li>
-                                
-                                <li>
-                                    <button type="button" class="dropdown-item d-flex justify-content-between align-items-center" 
-                                            onclick="regenerateDay('{{ $dateString }}', '6h')">
-                                        <span>Padrão (6h)</span>
-                                        @if($shifts->count() >= 5) <i class="bi bi-check text-success"></i> @endif
-                                    </button>
-                                </li>
-
-                                <li>
-                                    <button type="button" class="dropdown-item d-flex justify-content-between align-items-center"
-                                            onclick="regenerateDay('{{ $dateString }}', '8h')">
-                                        <span>Férias (8h)</span>
-                                        @if($shifts->count() < 5) <i class="bi bi-check text-success"></i> @endif
-                                    </button>
-                                </li>
+                                <li><h6 class="dropdown-header">Layout</h6></li>
+                                <li><button type="button" class="dropdown-item" onclick="regenerateDay('{{ $dateString }}', '6h')">Padrão (6h)</button></li>
+                                <li><button type="button" class="dropdown-item" onclick="regenerateDay('{{ $dateString }}', '8h')">Férias (8h)</button></li>
                             </ul>
                         </div>
                     </div>
                     
                     <div class="card-body p-2">
-                        <table class="table table-sm table-borderless mb-0">
-                            @foreach($shifts as $shift)
-                            <tr>
-                                <td style="width: 40%; vertical-align: middle;">
-                                    <span class="badge {{ $shift->name == 'FOLGA' ? 'bg-warning text-dark' : 'bg-secondary' }} w-100">
-                                        {{ $shift->name }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <select name="slots[{{ $shift->id }}]" class="form-select form-select-sm 
-                                        {{ $shift->user_id ? 'border-success fw-bold' : '' }}">
-                                        <option value="" selected disabled>-- Selecione --</option>
-                                        @foreach($users as $u)
-                                            <option value="{{ $u->id }}" {{ $shift->user_id == $u->id ? 'selected' : '' }}>
-                                                {{ $u->display_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </table>
+                        @if($shifts)
+                            <table class="table table-sm table-borderless mb-0">
+                                @foreach($shifts as $shift)
+                                @php 
+                                    $uniqueKey = $dateString . '_' . $shift->order; 
+                                @endphp
+                                
+                                <tr>
+                                    <td style="width: 40%; vertical-align: middle;">
+                                        <span class="badge {{ $shift->name == 'FOLGA' ? 'bg-warning text-dark' : 'bg-secondary' }} w-100">
+                                            {{ $shift->name }}
+                                        </span>
+                                        <input type="hidden" name="names[{{ $uniqueKey }}]" value="{{ $shift->name }}">
+                                    </td>
+                                    <td>
+                                        <select name="slots[{{ $uniqueKey }}]" class="form-select form-select-sm {{ $shift->user_id ? 'border-success fw-bold' : '' }}">
+                                            <option value="">-- Selecione --</option>
+                                            
+                                            @if(isset($users) && count($users) > 0)
+                                                @foreach($users as $u)
+                                                    <option value="{{ $u->id }}" {{ $shift->user_id == $u->id ? 'selected' : '' }}>
+                                                        {{ $u->display_name }}
+                                                    </option>
+                                                @endforeach
+                                            @else
+                                                <option disabled>Sem operadores</option>
+                                            @endif
+
+                                        </select>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </table>
+                        @else
+                            <div class="alert alert-warning m-0 p-2 text-center small">
+                                <i class="bi bi-exclamation-triangle"></i> Erro ao carregar turnos.
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -82,7 +96,7 @@
     </div>
 </form>
 
-<form id="regenerateForm" action="{{ route('scales.day.regenerate', $scale->id) }}" method="POST">
+<form id="regenerateForm" action="{{ route('scales.day.regenerate') }}" method="POST">
     @csrf
     <input type="hidden" name="date" id="regDate">
     <input type="hidden" name="mode" id="regMode">
@@ -90,7 +104,7 @@
 
 <script>
     function regenerateDay(date, mode) {
-        if(confirm('Tem certeza? Isso apagará os operadores definidos neste dia.')) {
+        if(confirm('Isso resetará os operadores deste dia. Confirmar?')) {
             document.getElementById('regDate').value = date;
             document.getElementById('regMode').value = mode;
             document.getElementById('regenerateForm').submit();

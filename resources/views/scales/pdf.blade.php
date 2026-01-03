@@ -12,8 +12,8 @@
         
         /* Layout de Colunas */
         .row { width: 100%; clear: both; margin-bottom: 15px; }
-        .col-left { float: left; width: 48%; margin-top: 15px; }
-        .col-right { float: right; width: 48%; margin-top: 15px; }
+        .col-left { float: left; width: 48%; margin-top: 25px; }
+        .col-right { float: right; width: 48%; margin-top: 25px; }
         
         /* Caixas */
         .day-header { border: 2px solid black; padding: 5px; font-weight: bold; text-align: center; margin-bottom: 5px; background-color: #fff; }
@@ -32,12 +32,11 @@
 <body>
 
     <div class="footer">
-        Gerado em: {{ date('d/m/Y \à\s H:i') }} | 
-        Responsável: {{ Auth::user()->name }}
+        Gerado em: {{ date('d/m/Y \à\s H:i') }} por {{ Auth::user()->name }}
     </div>
     
     <div class="header">
-        <img src="{{ public_path('band_logo.png') }}" class="logo"> 
+        <img src="{{ public_path('band_logo.png') }}" class="logo">
         <div class="title">ESCALA EXIBIÇÃO</div>
     </div>
 
