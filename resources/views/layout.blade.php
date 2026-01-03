@@ -11,7 +11,11 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark-subtle shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">SGCM</a>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('dashboard') }}">
+                <img src="{{ asset('logotipo-band.webp') }}" alt="Logo" height="30" class="d-inline-block align-text-top">
+                
+                <span class="fw-bold">SGCM</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
