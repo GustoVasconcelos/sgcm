@@ -2,29 +2,23 @@
 
 @section('content')
 <style>
-    /* Estilos Específicos para o Afinador */
+    /* Seus estilos mantidos */
     .input-time {
         font-family: 'Courier New', monospace;
         font-weight: bold;
         font-size: 1.5rem;
         text-align: center;
     }
-    
-    /* Cores de Status */
     .status-card { transition: all 0.3s ease; }
     .status-ok { background-color: #198754; color: white; }
     .status-danger { background-color: #dc3545; color: white; }
     .status-tuned { background-color: #0d6efd; color: white; }
-    
-    /* Painel Fixo */
     .totals-panel { position: sticky; top: 20px; }
     .total-display { font-size: 2.5rem; font-weight: 800; font-family: sans-serif; }
-
-    /* NOVO: Estilo do Acumulado */
     .acc-display {
         font-family: 'Courier New', monospace;
         font-size: 1.3rem;
-        color: #6c757d; /* Cinza */
+        color: #6c757d;
         font-weight: bold;
         display: block;
         text-align: right;
@@ -42,6 +36,7 @@
 <div class="row mb-3">
     <div class="col-12">
         <h3 class="fw-bold"><i class="bi bi-stopwatch"></i> Afinação de Jornal</h3>
+        <small class="text-muted">Atalhos: <b>F1</b> Topo | <b>F2</b> Próximo | <b>F3</b> Anterior | <b>F4</b> Excluir Linha | <b>F5</b> Inserir Linha</small>
     </div>
 </div>
 
@@ -56,8 +51,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <div id="rowsContainer">
-                    </div>
+                <div id="rowsContainer"></div>
                 
                 <div class="mt-3 text-center">
                     <button class="btn btn-outline-secondary btn-sm" onclick="addRow()">+ Adicionar 1 Linha</button>
@@ -121,39 +115,31 @@
             input.value = ""; 
             saveData(); calculate(); return; 
         }
-
-        // CORREÇÃO: Pega os últimos 6 dígitos
         val = val.slice(-6); 
-
         const padded = val.padStart(6, '0');
         input.value = `${padded.slice(0, 2)}:${padded.slice(2, 4)}:${padded.slice(4, 6)}`;
-        
         saveData();
         calculate();
     }
 
     // --- 2. GERENCIAMENTO DE LINHAS ---
-
     function createRowHtml(index, value = "") {
-        // Adicionei a coluna do meio (col-auto) para o acumulado
         return `
             <div class="row mb-2 g-2 align-items-center row-entry" id="row-${index}">
                 <div class="col-auto">
                     <span class="badge bg-secondary rounded-pill" hidden style="width: 25px;">${index + 1}</span>
                 </div>
                 <div class="col">
-                    <input type="text" class="form-control input-time" 
+                    <input type="text" class="form-control input-time tuning-input" 
                            placeholder="00:00:00" value="${value}"
                            oninput="formatInput(this)" onfocus="this.select()">
                 </div>
-                
                 <div class="col-auto" style="min-width: 80px;">
                     <span class="acc-label" hidden>Acumulado</span>
                     <span class="acc-display">--:--:--</span>
                 </div>
-
                 <div class="col-auto">
-                    <button class="btn btn-outline-danger btn-sm" onclick="removeRow(${index})" tabindex="-1">x</button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="removeRow('${index}')" tabindex="-1">x</button>
                 </div>
             </div>
         `;
@@ -163,7 +149,6 @@
         const count = document.getElementById('bulkCount').value || 15;
         const container = document.getElementById('rowsContainer');
         container.innerHTML = ''; 
-
         for (let i = 0; i < count; i++) {
             container.insertAdjacentHTML('beforeend', createRowHtml(i));
         }
@@ -173,22 +158,20 @@
 
     function addRow() {
         const container = document.getElementById('rowsContainer');
-        // Usamos timestamp para ID único garantido, evita conflito ao apagar/criar
         const uniqueId = Date.now(); 
         container.insertAdjacentHTML('beforeend', createRowHtml(uniqueId));
-        reindexBadges(); // Arruma os números 1, 2, 3...
+        reindexBadges();
         saveData();
     }
 
     function removeRow(id) {
         const row = document.getElementById(`row-${id}`);
         if(row) row.remove();
-        reindexBadges(); // Recalcula indices visuais
+        reindexBadges();
         calculate();
         saveData();
     }
     
-    // Função extra visual: Atualiza os números das bolinhas (1, 2, 3...) quando apaga uma linha
     function reindexBadges() {
         const rows = document.querySelectorAll('.row-entry');
         rows.forEach((row, index) => {
@@ -207,39 +190,29 @@
     }
 
     // --- 3. CÁLCULO E VISUALIZAÇÃO ---
-
     function calculate() {
         const rows = document.querySelectorAll('.row-entry');
         let totalSeconds = 0;
-        let accumulatedSeconds = 0; // Reinicia o acumulador
+        let accumulatedSeconds = 0;
 
         rows.forEach((row, index) => {
             const input = row.querySelector('.input-time');
             const accDisplay = row.querySelector('.acc-display');
             
-            // 1. Pega o valor da linha atual
             const currentVal = timeToSeconds(input.value);
-
-            // 2. PRIMEIRO SOMA (A correção está aqui)
-            // Agora o acumulado já contém o valor desta linha + as anteriores
             accumulatedSeconds += currentVal;
             totalSeconds += currentVal;
 
-            // 3. DEPOIS EXIBE
             if (index === 0) {
-                // Regra: Na primeira linha, o acumulado fica vazio/invisível
                 accDisplay.style.visibility = 'hidden'; 
             } else {
                 accDisplay.style.visibility = 'visible';
-                // Mostra o total somado até este momento
                 accDisplay.innerText = secondsToTime(accumulatedSeconds);
             }
         });
 
-        // Atualiza display da soma TOTAL (Painel Direito)
         document.getElementById('displaySum').innerText = secondsToTime(totalSeconds);
 
-        // Lógica da Meta/Diferença (Painel Direito)
         const targetStr = document.getElementById('targetInput').value;
         const resultCard = document.getElementById('resultCard');
         const resultTitle = document.getElementById('resultTitle');
@@ -256,7 +229,6 @@
 
         const targetSeconds = timeToSeconds(targetStr);
         const diff = targetSeconds - totalSeconds;
-
         displayDiff.innerText = secondsToTime(Math.abs(diff));
 
         if (diff === 0) {
@@ -275,12 +247,10 @@
     }
 
     // --- 4. PERSISTÊNCIA ---
-
     function saveData() {
         const inputs = document.querySelectorAll('.row-entry .input-time');
         const values = Array.from(inputs).map(input => input.value);
         const target = document.getElementById('targetInput').value;
-
         localStorage.setItem('sgcm_afiacao_data', JSON.stringify({ rows: values, target: target }));
     }
 
@@ -290,20 +260,15 @@
             const data = JSON.parse(saved);
             const container = document.getElementById('rowsContainer');
             container.innerHTML = '';
-
-            // Importante: Recriamos usando IDs únicos baseados no index para simplificar o load
             if (data.rows && data.rows.length > 0) {
                 data.rows.forEach((val, idx) => {
-                    // Usamos um ID sequencial aqui só pra carregar
                     container.insertAdjacentHTML('beforeend', createRowHtml(idx + 9999, val));
                 });
             } else {
                 generateRows();
             }
             reindexBadges();
-
             if (data.target) document.getElementById('targetInput').value = data.target;
-
             calculate();
         } else {
             generateRows();
@@ -311,5 +276,104 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadData);
+
+    // --- 5. SISTEMA DE ATALHOS (KEYBOARD SHORTCUTS) ---
+    document.addEventListener('keydown', function(event) {
+        
+        // Pega todos os inputs visíveis naquele momento
+        const inputs = Array.from(document.querySelectorAll('.tuning-input'));
+        const currentInput = document.activeElement;
+        const currentIndex = inputs.indexOf(currentInput);
+
+        // Se o foco não estiver em um input de afinação, ignora (exceto F1 que pode focar vindo do nada)
+        if (!inputs.includes(currentInput) && event.key !== 'F1') return;
+
+        // F1: IR PARA O TOPO
+        if (event.key === 'F1') {
+            event.preventDefault();
+            if (inputs.length > 0) {
+                inputs[0].focus();
+                inputs[0].select(); 
+            }
+            return;
+        }
+
+        // F2: AVANÇAR CAMPO (PRÓXIMO)
+        if (event.key === 'F2') {
+            event.preventDefault();
+            if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                const nextInput = inputs[currentIndex + 1];
+                nextInput.focus();
+                nextInput.select();
+            }
+            return;
+        }
+
+        // F3: VOLTAR CAMPO (ANTERIOR)
+        if (event.key === 'F3') {
+            event.preventDefault();
+            if (currentIndex > 0) {
+                const prevInput = inputs[currentIndex - 1];
+                prevInput.focus();
+                prevInput.select();
+            }
+            return;
+        }
+
+        // F4: EXCLUIR LINHA ATUAL
+        if (event.key === 'F4') {
+            event.preventDefault();
+            const currentRow = currentInput.closest('.row-entry');
+            if (currentRow) {
+                const nextRow = currentRow.nextElementSibling;
+                const prevRow = currentRow.previousElementSibling;
+                currentRow.remove();
+
+                if (nextRow) {
+                    const nextInput = nextRow.querySelector('.tuning-input');
+                    if(nextInput) { nextInput.focus(); nextInput.select(); }
+                } else if (prevRow) {
+                    const prevInput = prevRow.querySelector('.tuning-input');
+                    if(prevInput) { prevInput.focus(); prevInput.select(); }
+                }
+                reindexBadges();
+                calculate();
+                saveData();
+            }
+        }
+
+        // F5: INSERIR NOVA LINHA ABAIXO (NOVO)
+        if (event.key === 'F5') {
+            event.preventDefault(); // IMPORTANTE: Bloqueia o Refresh da página
+            
+            const currentRow = currentInput.closest('.row-entry');
+            if (currentRow) {
+                // Gera ID único
+                const uniqueId = Date.now();
+                // Cria o HTML da nova linha
+                const newRowHtml = createRowHtml(uniqueId, "");
+                
+                // Insere logo APÓS a linha atual
+                currentRow.insertAdjacentHTML('afterend', newRowHtml);
+
+                // Pega a linha recém criada (é o próximo irmão da atual)
+                const newRow = currentRow.nextElementSibling;
+                
+                // Foca no input dessa nova linha
+                if (newRow) {
+                    const newInput = newRow.querySelector('.tuning-input');
+                    if(newInput) {
+                        newInput.focus();
+                        newInput.select();
+                    }
+                }
+
+                // Atualiza tudo
+                reindexBadges();
+                saveData();
+                calculate();
+            }
+        }
+    });
 </script>
 @endsection
