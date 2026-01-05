@@ -24,6 +24,7 @@
 
     <div class="card login-card shadow">
         <div class="text-center mb-4">
+            <img src="{{ asset('logotipo-band.webp') }}" alt="Logo" height="30" class="mb-3">
             <h3 class="fw-bold text-primary">SGCM</h3>
             <p class="text-muted">Controle Mestre</p>
         </div>

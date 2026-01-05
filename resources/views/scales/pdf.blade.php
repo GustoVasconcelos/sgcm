@@ -4,11 +4,26 @@
     <meta charset="UTF-8">
     <title>Relatório de Escala</title>
     <style>
-        body { font-family: sans-serif; font-size: 16px; }
-        .header { text-align: center; margin-bottom: 100px; } /* Ajustei margem */
-        .logo { float: left; display: block; margin-left: 50px; } /* Ajuste logo */
-        .title { float: right; font-weight: bold; font-size: 30px; margin-top: 25px; margin-right: 100px; text-transform: uppercase; }
-        .period-box { border: 2px solid black; padding: 5px; font-size: 17px; font-weight: bold; text-align: center; margin-bottom: 20px; clear: both; }
+        /* 1. AJUSTE DA MARGEM DO CORPO
+           Aumentei para 160px porque o cabeçalho agora ficou maior
+           com a caixa de período dentro dele.
+        */
+        body { font-family: sans-serif; font-size: 16px; margin-top: 160px; margin-bottom: 40px; }
+
+        /* 2. AJUSTE DO CABEÇALHO FIXO
+           Aumentei a altura (height) para 150px para caber tudo.
+        */
+        .header { position: fixed; top: 0px; left: 0px; right: 0px; height: 150px; text-align: center; }
+
+        .logo { float: left; display: block; margin-left: 50px; margin-top: 10px; } 
+        
+        .title { float: right; font-weight: bold; font-size: 30px; margin-top: 35px; margin-right: 100px; text-transform: uppercase; }
+
+        /* 3. AJUSTE DA CAIXA DE PERÍODO
+           Como ela está dentro do header agora, removi margins exageradas
+           e garanti o clear:both para ela cair para a linha de baixo do logo/titulo
+        */
+        .period-box { clear: both; border: 2px solid black; padding: 5px; font-size: 17px; font-weight: bold; text-align: center;  margin-top: 20px; background-color: #fff; }
         
         /* Layout de Colunas */
         .row { width: 100%; clear: both; margin-bottom: 15px; }
@@ -25,23 +40,22 @@
         .name-col { text-transform: uppercase; padding-left: 10px; }
         .folga { font-weight: bold; }
 
-        /* Rodapé Fixo */
-        .footer { position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; font-size: 10px; color: #000; border-top: 1px solid #ccc; padding-top: 5px; }
+        .footer { position: fixed; bottom: 0px; left: 0px; width: 100%; text-align: center; font-size: 10px; color: #000; border-top: 1px solid #ccc; padding-top: 5px; background-color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="footer">
-        Gerado em: {{ date('d/m/Y \à\s H:i') }} por {{ Auth::user()->name }}
-    </div>
-    
     <div class="header">
         <img src="{{ public_path('band_logo.png') }}" class="logo">
         <div class="title">ESCALA EXIBIÇÃO</div>
+
+        <div class="period-box">
+            PERÍODO DE {{ $startDate->format('d/m/Y') }} a {{ $endDate->format('d/m/Y') }}
+        </div>
     </div>
 
-    <div class="period-box">
-        PERÍODO DE {{ $startDate->format('d/m/Y') }} a {{ $endDate->format('d/m/Y') }}
+    <div class="footer">
+        Gerado em: {{ date('d/m/Y \à\s H:i') }} por {{ Auth::user()->name }}
     </div>
 
     @php 
@@ -74,19 +88,16 @@
                     </tr>
                     @endforeach
 
-                    {{-- LÓGICA DE PREENCHIMENTO VISUAL --}}
                     @php
-                        // Define o padrão máximo de linhas (geralmente 5 para turnos de 6h + folga)
                         $padraoLinhas = 5; 
                         $linhasAtuais = count($shifts);
                         $linhasFaltantes = $padraoLinhas - $linhasAtuais;
                     @endphp
 
-                    {{-- Se faltar linha (ex: turno de 8h que só tem 4), cria linhas vazias --}}
                     @if($linhasFaltantes > 0)
                         @for($i = 0; $i < $linhasFaltantes; $i++)
                             <tr>
-                                <td class="time-col">&nbsp;</td> {{-- &nbsp; garante que a linha tenha altura --}}
+                                <td class="time-col">&nbsp;</td>
                                 <td class="name-col">&nbsp;</td>
                             </tr>
                         @endfor
