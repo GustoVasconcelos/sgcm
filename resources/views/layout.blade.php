@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
     <nav class="navbar navbar-expand-lg shadow-sm">
         <div class="container">
@@ -78,7 +78,7 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
+    <div class="container mt-4 flex-grow-1">
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -88,6 +88,19 @@
 
         @yield('content')
     </div>
+
+    <footer class="text-center py-4 mt-5 border-top border-secondary border-opacity-25">
+        <div class="container">
+            <small class="text-secondary">
+                &copy; {{ date('Y') }} SGCM - Sistema Gerenciador do Controle Mestre
+                <br>
+                Feito por 
+                <a href="mailto:augusto@lothuscorp.com.br" class="text-white opacity-75 text-decoration-none">
+                    Augusto Vasconcelos
+                </a>
+            </small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -55,5 +55,15 @@
         </form>
     </div>
 
+    </div> <div class="fixed-bottom text-center pb-3">
+        <small class="text-secondary opacity-75">
+        Feito por 
+        <a href="mailto:augusto@lothuscorp.com.br" class="text-reset text-decoration-none fw-bold">
+            Augusto Vasconcelos
+        </a> 
+        - {{ date('Y') }}
+    </small>
+    </div>
+
 </body>
 </html>
