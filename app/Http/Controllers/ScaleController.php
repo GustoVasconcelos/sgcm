@@ -98,20 +98,40 @@ class ScaleController extends Controller
     {
         $slots = $request->input('slots', []);
         $names = $request->input('names', []);
+        
+        $changedDays = []; // Lista para guardar os dias alterados
 
         foreach ($slots as $key => $userId) {
             [$date, $order] = explode('_', $key);
 
+            // Busca o turno atual no banco para comparar
+            $currentShift = ScaleShift::where('date', $date)->where('order', $order)->first();
+            
+            // Verifica se houve mudança (Se não existia e agora tem ID, ou se o ID mudou)
+            $oldUserId = $currentShift ? $currentShift->user_id : null;
+            
+            // Se o valor novo for diferente do antigo
+            $StringUserId = (string)$userId;
+            if ((string)$oldUserId !== $StringUserId) {
+                // Formata a data para salvar no log de forma legível
+                $formattedDate = Carbon::parse($date)->format('d/m');
+                if (!in_array($formattedDate, $changedDays)) {
+                    $changedDays[] = $formattedDate;
+                }
+            }
+
+            // Salva normalmente
             ScaleShift::updateOrCreate(
-                [
-                    'date' => $date,
-                    'order' => $order
-                ],
-                [
-                    'user_id' => $userId,
-                    'name' => $names[$key] ?? 'Turno Padrão',
-                ]
+                ['date' => $date, 'order' => $order],
+                ['user_id' => $userId, 'name' => $names[$key] ?? 'Turno Padrão']
             );
+        }
+
+        // SÓ REGISTRA SE HOUVE MUDANÇA
+        if (count($changedDays) > 0) {
+            \App\Models\ActionLog::register('Escalas', 'Salvar Alterações', [
+                'dias_alterados' => implode(', ', $changedDays)
+            ]);
         }
 
         return redirect()->route('scales.manage', [
@@ -260,6 +280,12 @@ class ScaleController extends Controller
 
         $pdf = Pdf::loadView('scales.pdf', compact('days', 'users', 'startDate', 'endDate', 'reportTitle'));
         $pdf->setPaper('a4', 'portrait');
+
+        // REGISTRO DE LOG
+        \App\Models\ActionLog::register('Escalas', 'Baixar PDF', [
+            'periodo' => $start->format('d/m/Y') . ' a ' . $end->format('d/m/Y'),
+            'arquivo' => 'ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf'
+        ]);
 
         return $pdf->stream('ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf');
     }

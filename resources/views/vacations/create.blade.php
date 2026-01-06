@@ -1,7 +1,7 @@
 @extends('layout')
 
 @section('content')
-<div class="card shadow-sm" style="max-width: 800px; margin: auto;">
+<div class="card shadow-sm" style="max-width: 800px; margin: 50px auto;">
     <div class="card-header bg-primary text-white">
         <h5 class="mb-0">Cadastrar Férias</h5>
     </div>
@@ -59,7 +59,7 @@
 
             <div class="d-flex justify-content-end gap-2">
                 <a href="{{ route('vacations.index') }}" class="btn btn-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-success">Salvar Solicitação</button>
+                <button type="submit" class="btn btn-success">Cadastrar</button>
             </div>
         </form>
     </div>

@@ -46,6 +46,8 @@
                                 <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Painel Admin</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('users.index') }}">Gerenciar Usuários</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('logs.index') }}">Visualizar Logs</a></li>
                             </ul>
                         </li>
                     @endif

@@ -121,6 +121,20 @@
                 </div>
             </a>
         </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ route('logs.index') }}" class="text-decoration-none"> <div class="card h-100 bg-dark border-secondary shadow-sm hover-card ">
+                    <div class="card-body text-center py-4">
+                        <div class="icon-box mb-3 text-white">
+                            <i class="bi bi-activity fs-1"></i>
+                        </div>
+                        <h5 class="card-title">Visualizar Logs</h5>
+                        <p class="card-text small text-50">Cadastro e controle de usuários.</p>
+                        <span class="badge bg-danger">Admin</span>
+                    </div>
+                </div>
+            </a>
+        </div>
         @endif
 
     </div>

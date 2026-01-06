@@ -37,7 +37,7 @@
             <div class="card-body">
                 <h5 class="card-title">Status: Online</h5>
                 <p class="card-text">Verifique logs e atividades recentes.</p>
-                <button class="btn btn-light text-success fw-bold">Ver Logs</button>
+                <a href="{{ route('logs.index') }}" class="btn btn-light text-success fw-bold">Ver Logs</a>
             </div>
         </div>
     </div>

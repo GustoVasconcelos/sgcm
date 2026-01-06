@@ -182,6 +182,21 @@
 
     function clearAll() {
         if(confirm('Tem certeza que deseja zerar tudo?')) {
+
+            // REGISTRO DE LOG
+            fetch('/log/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // Importante para o Laravel aceitar
+                },
+                body: JSON.stringify({
+                    module: 'Afinação',
+                    action: 'Limpar Tudo',
+                    details: { timestamp: new Date().toLocaleString() }
+                })
+            });
+
             localStorage.removeItem('sgcm_afiacao_data');
             document.getElementById('rowsContainer').innerHTML = '';
             document.getElementById('targetInput').value = '';

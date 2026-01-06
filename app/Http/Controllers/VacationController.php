@@ -48,6 +48,12 @@ class VacationController extends Controller
 
         Vacation::create($data);
 
+        // REGISTRO DE LOG
+        \App\Models\ActionLog::register('Férias', 'Cadastrar Férias', [
+            'periodo' => date('d/m/Y', strtotime($request->start_date)) . ' a ' . date('d/m/Y', strtotime($request->end_date)),
+            'tipo' => $request->type ?? 'Normal' // Ex: Venda, Gozo
+        ]);
+        
         return redirect()->route('vacations.index', ['year' => $request->year])
                          ->with('success', 'Férias cadastradas!');
     }

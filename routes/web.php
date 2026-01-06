@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
     Route::delete('/schedules/{schedule}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
     
-    // Ações Especiais
+    // Ações Especiais da Grade de Programacao
     Route::post('/schedules/clone', [ScheduleController::class, 'clone'])->name('schedules.clone');
     Route::post('/schedules/{id}/toggle/{type}', [ScheduleController::class, 'toggleStatus'])->name('schedules.toggle');
     
@@ -60,6 +60,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/afinacao', function () {
         return view('tools.afinacao');
     })->name('tools.afinacao');
+
+    Route::post('/log/register', function (\Illuminate\Http\Request $request) {
+        \App\Models\ActionLog::register($request->module, $request->action, $request->details ?? []);
+        return response()->json(['status' => 'ok']);
+    })->middleware('auth');
 
 });
 
@@ -74,4 +79,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // CRUD de Usuários (agora só admin acessa)
     Route::resource('users', UserController::class);
+
+    // Coloque dentro do grupo middleware auth e admin (se quiser restringir)
+    Route::get('/logs', [\App\Http\Controllers\LogController::class, 'index'])->name('logs.index');
 });
