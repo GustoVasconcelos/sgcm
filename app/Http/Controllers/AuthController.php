@@ -24,11 +24,6 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // LÓGICA DE REDIRECIONAMENTO
-            if (Auth::user()->profile === 'admin') {
-                return redirect()->route('admin.dashboard');
-            }
-
             return redirect()->route('dashboard');
         }
 

@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::paginate(10); // Lista 10 usuários por página
+        $users = User::paginate(10); 
         return view('users.index', compact('users'));
     }
 
@@ -25,14 +25,15 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'profile' => 'required|in:admin,user', // Validação do perfil
+            'profile' => 'required|in:admin,user', 
         ]);
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'profile' => $request->profile, // Guardar perfil
+            'profile' => $request->profile,
+            'is_operator' => $request->has('is_operator'), 
         ]);
 
         return redirect()->route('users.index')->with('success', 'Usuário criado com sucesso!');
@@ -49,13 +50,14 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'profile' => 'required|in:admin,user', // Validação do perfil
+            'profile' => 'required|in:admin,user',
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
-            'profile' => $request->profile, // Atualizar perfil
+            'profile' => $request->profile,
+            'is_operator' => $request->has('is_operator'), 
         ];
 
         if ($request->filled('password')) {

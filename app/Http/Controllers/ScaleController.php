@@ -179,7 +179,7 @@ class ScaleController extends Controller
     {
         // 1. Busca quem NÃO é admin
         // Adicionei ->where('name', '!=', 'NÃO HÁ')
-        $users = User::where('profile', '!=', 'admin')
+        $users = User::where('is_operator', true) 
             ->where('name', '!=', 'NÃO HÁ') 
             ->orderBy('name')
             ->get();
