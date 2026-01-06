@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\LogSettingsController; 
 use Illuminate\Support\Facades\Route;
 
 // --- Rotas Públicas ---
@@ -34,7 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::post('scales/store', [\App\Http\Controllers\ScaleController::class, 'store'])->name('scales.store');
     Route::get('scales/print', [\App\Http\Controllers\ScaleController::class, 'print'])->name('scales.print');
     
-    // Rota de Regenerar Dia (agora não precisa do ID da escala na URL)
+    // Rota de Regenerar Dia
     Route::post('scales/regenerate', [\App\Http\Controllers\ScaleController::class, 'regenerateDay'])->name('scales.day.regenerate');
 
     // Rotas de Relatório RH Escalas
@@ -61,6 +62,7 @@ Route::middleware('auth')->group(function () {
         return view('tools.afinacao');
     })->name('tools.afinacao');
 
+    // Rota API para logs do Javascript
     Route::post('/log/register', function (\Illuminate\Http\Request $request) {
         \App\Models\ActionLog::register($request->module, $request->action, $request->details ?? []);
         return response()->json(['status' => 'ok']);
@@ -77,9 +79,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
-    // CRUD de Usuários (agora só admin acessa)
+    // CRUD de Usuários
     Route::resource('users', UserController::class);
 
-    // Coloque dentro do grupo middleware auth e admin (se quiser restringir)
+    // Logs de Atividade
     Route::get('/logs', [\App\Http\Controllers\LogController::class, 'index'])->name('logs.index');
+
+    // Configuracoes
+    Route::prefix('settings')->name('logs.settings.')->group(function () {
+        Route::get('/', [LogSettingsController::class, 'index'])->name('index');
+        Route::post('/update', [LogSettingsController::class, 'update'])->name('update');
+        Route::post('/clean', [LogSettingsController::class, 'cleanOld'])->name('clean');
+        Route::post('/clear-all', [LogSettingsController::class, 'clearAll'])->name('clear_all');
+        Route::get('/export', [LogSettingsController::class, 'export'])->name('export');
+    });
 });

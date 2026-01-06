@@ -28,7 +28,9 @@ class LogController extends Controller
             $query->whereDate('created_at', $request->date);
         }
 
-        $logs = $query->paginate(20)->withQueryString(); // Paginação mantendo os filtros
+        // Pega do banco ou usa 20 como padrão
+        $perPage = \App\Models\Setting::get('log_pagination', 20);
+        $logs = $query->paginate($perPage)->withQueryString();
         $users = User::orderBy('name')->get();
         
         // Pega os módulos únicos que existem no banco para preencher o select

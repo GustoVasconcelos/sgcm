@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Schedule;
 use App\Models\Program;
+use App\Models\ActionLog;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -11,9 +12,7 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Define a data base (Sábado). Se não vier na URL, pega o próximo sábado ou hoje.
-        // Lógica: Se hoje é Sábado ou Domingo, mostra este fim de semana.
-        // Se é dia de semana, mostra o próximo.
+        // ... (código original inalterado) ...
         $today = Carbon::now();
         
         if ($request->has('date')) {
@@ -26,20 +25,17 @@ class ScheduleController extends Controller
             }
         }
 
-        $saturday = $baseDate->copy()->startOfDay(); // Sábado
-        $sunday = $baseDate->copy()->addDay()->startOfDay(); // Domingo
+        $saturday = $baseDate->copy()->startOfDay();
+        $sunday = $baseDate->copy()->addDay()->startOfDay();
 
-        // 2. Busca os dados
         $schedules = Schedule::with('program')
             ->whereBetween('date', [$saturday->format('Y-m-d'), $sunday->format('Y-m-d')])
             ->orderBy('start_time')
             ->get();
 
-        // Separa para as abas
         $saturdayGrade = $schedules->where('date', $saturday);
         $sundayGrade = $schedules->where('date', $sunday);
 
-        // Lista de Programas para o Modal de Novo Item
         $programs = Program::orderBy('name')->get();
 
         return view('schedules.index', compact('saturday', 'sunday', 'saturdayGrade', 'sundayGrade', 'programs'));
@@ -56,53 +52,79 @@ class ScheduleController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        Schedule::create($data);
+        $schedule = Schedule::create($data);
+
+        // --- LOG: Adicionar Programa ---
+        // Buscamos o nome do programa para ficar legível no log
+        $programName = $schedule->program ? $schedule->program->name : 'ID ' . $data['program_id'];
+        
+        ActionLog::register('PGMs FDS', 'Adicionar Programa na Grade', [
+            'programa' => $programName,
+            'data_exibicao' => date('d/m/Y', strtotime($data['date'])),
+            'horario' => $data['start_time']
+        ]);
+        // ------------------------------
+
         return back()->with('success', 'Programa agendado!');
     }
     
-    // Método Ajax rápido para alternar status (Mago/Verificação)
     public function toggleStatus($id, $type)
     {
         $schedule = Schedule::findOrFail($id);
+        
+        // Guarda o estado anterior para logar
+        $statusLabel = ($type == 'mago') ? 'Servidor (Mago)' : 'Verificação Técnica';
         
         if ($type == 'mago') $schedule->status_mago = !$schedule->status_mago;
         if ($type == 'verification') $schedule->status_verification = !$schedule->status_verification;
         
         $schedule->save();
+
+        // --- LOG: Checagem/Verificação ---
+        ActionLog::register('PGMs FDS', 'Checagem de Mídia', [
+            'programa' => $schedule->program->name ?? 'Desconhecido',
+            'data_exibicao' => $schedule->date->format('d/m/Y'),
+            'tipo_checagem' => $statusLabel,
+            'novo_status' => ($type == 'mago' ? $schedule->status_mago : $schedule->status_verification) ? 'OK' : 'Pendente'
+        ]);
+        // --------------------------------
         
         return response()->json(['success' => true, 'new_status' => $type == 'mago' ? $schedule->status_mago : $schedule->status_verification]);
     }
 
     public function destroy(Schedule $schedule)
     {
+        // --- LOG: Excluir Programa (Antes de deletar para pegar os dados) ---
+        ActionLog::register('PGMs FDS', 'Excluir Programa da Grade', [
+            'programa' => $schedule->program->name ?? 'Desconhecido',
+            'data_exibicao' => $schedule->date->format('d/m/Y'),
+            'horario_previsto' => $schedule->start_time
+        ]);
+        // ---------------------------------------------------------------
+
         $schedule->delete();
         return back()->with('success', 'Removido da grade.');
     }
 
-    // A MÁGICA: Clonar fim de semana anterior
     public function clone(Request $request)
     {
         $targetSaturday = Carbon::parse($request->target_date);
         $targetSunday = $targetSaturday->copy()->addDay();
 
-        // Verifica se já tem dados pra não duplicar sem querer
         if (Schedule::where('date', $targetSaturday)->exists() || Schedule::where('date', $targetSunday)->exists()) {
              return back()->with('error', 'Já existe grade cadastrada para esta data! Limpe antes de clonar.');
         }
 
-        // Busca o ÚLTIMO fim de semana que teve dados antes desse
         $lastEntry = Schedule::where('date', '<', $targetSaturday)->orderBy('date', 'desc')->first();
 
         if (!$lastEntry) {
             return back()->with('error', 'Nenhuma grade anterior encontrada para clonar.');
         }
 
-        // Define as datas de origem (Sábado e Domingo passados)
         $sourceDate = Carbon::parse($lastEntry->date);
         $sourceSaturday = $sourceDate->isSaturday() ? $sourceDate : $sourceDate->copy()->subDay();
         $sourceSunday = $sourceSaturday->copy()->addDay();
 
-        // Busca tudo da origem
         $sourceSchedules = Schedule::whereBetween('date', [$sourceSaturday->format('Y-m-d'), $sourceSunday->format('Y-m-d')])->get();
 
         foreach ($sourceSchedules as $item) {
@@ -113,12 +135,20 @@ class ScheduleController extends Controller
                 'date' => $newDate,
                 'start_time' => $item->start_time,
                 'duration' => $item->duration,
-                'custom_info' => $item->custom_info, // Copia os blocos (como rascunho)
+                'custom_info' => $item->custom_info,
                 'notes' => $item->notes,
-                'status_mago' => false, // Reseta
-                'status_verification' => false, // Reseta
+                'status_mago' => false,
+                'status_verification' => false,
             ]);
         }
+
+        // --- LOG: Clonar Grade ---
+        ActionLog::register('PGMs FDS', 'Clonar Grade Anterior', [
+            'de_data' => $sourceSaturday->format('d/m/Y'),
+            'para_data' => $targetSaturday->format('d/m/Y'),
+            'itens_clonados' => $sourceSchedules->count()
+        ]);
+        // -------------------------
 
         return back()->with('success', 'Grade clonada com sucesso do dia ' . $sourceSaturday->format('d/m'));
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ScaleShift;
+use App\Models\ActionLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -129,7 +130,7 @@ class ScaleController extends Controller
 
         // SÓ REGISTRA SE HOUVE MUDANÇA
         if (count($changedDays) > 0) {
-            \App\Models\ActionLog::register('Escalas', 'Salvar Alterações', [
+            ActionLog::register('Escalas', 'Salvar Alterações', [
                 'dias_alterados' => implode(', ', $changedDays)
             ]);
         }
@@ -282,7 +283,7 @@ class ScaleController extends Controller
         $pdf->setPaper('a4', 'portrait');
 
         // REGISTRO DE LOG
-        \App\Models\ActionLog::register('Escalas', 'Baixar PDF', [
+        ActionLog::register('Escalas', 'Baixar PDF', [
             'periodo' => $start->format('d/m/Y') . ' a ' . $end->format('d/m/Y'),
             'arquivo' => 'ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf'
         ]);
