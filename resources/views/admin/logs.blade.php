@@ -66,8 +66,13 @@
                             <small class="text-muted">{{ $log->created_at->format('H:i:s') }}</small>
                         </td>
                         <td>
-                            <div class="fw-bold">{{ $log->user->name }}</div>
-                            <small class="text-muted">{{ $log->user->email }}</small>
+                            <div class="fw-bold">
+                                {{-- Verifica se o usuário existe (mesmo deletado). Se não, mostra aviso --}}
+                                {{ $log->user ? $log->user->name : 'Usuário Removido (ID ' . $log->user_id . ')' }}
+                            </div>
+                            <small class="text-muted">
+                                {{ $log->user ? $log->user->email : 'Email não disponível' }}
+                            </small>
                         </td>
                         <td><span class="badge bg-secondary">{{ $log->module }}</span></td>
                         <td class="fw-bold text-primary">{{ $log->action }}</td>
@@ -75,7 +80,21 @@
                             @if($log->details)
                                 <ul class="mb-0 small ps-3">
                                 @foreach($log->details as $key => $value)
-                                    <li><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</li>
+                                    <li>
+                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> 
+                                        @if(is_array($value))
+                                            <ul class="mb-0 text-muted">
+                                                @foreach($value as $subKey => $subValue)
+                                                    <li>
+                                                        <em>{{ ucfirst(str_replace('_', ' ', $subKey)) }}:</em> 
+                                                        {{ is_array($subValue) ? json_encode($subValue) : $subValue }}
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @else
+                                            {{ $value }}
+                                        @endif
+                                    </li>
                                 @endforeach
                                 </ul>
                             @else

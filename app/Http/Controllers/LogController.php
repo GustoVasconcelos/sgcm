@@ -11,7 +11,9 @@ class LogController extends Controller
     public function index(Request $request)
     {
         // Inicia a query ordenando do mais recente para o antigo
-        $query = ActionLog::with('user')->latest();
+        $query = ActionLog::with(['user' => function($query) {
+            $query->withTrashed();
+        }])->latest();
 
         // 1. Filtro por Usuário
         if ($request->filled('user_id')) {

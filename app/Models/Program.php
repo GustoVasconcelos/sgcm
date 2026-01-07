@@ -7,6 +7,6 @@ class Program extends Model
     protected $fillable = ['name', 'default_duration', 'color'];
 
     public function schedules() {
-        return $table->hasMany(Schedule::class);
+        return $this->hasMany(Schedule::class);
     }
 }
