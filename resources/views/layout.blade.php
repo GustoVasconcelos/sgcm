@@ -39,7 +39,7 @@
                     </li>
                     @if(Auth::user()->profile === 'admin')
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown">
                                 Administração
                             </a>
                             <ul class="dropdown-menu">

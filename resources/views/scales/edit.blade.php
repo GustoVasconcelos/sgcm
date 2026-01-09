@@ -13,6 +13,9 @@
             Escalas de {{ $start->format('d/m') }} a {{ $end->format('d/m') }}
         </h4>
         <div>
+            <button type="submit" form="form-auto-generate" class="btn btn-warning text-dark fw-bold me-2" title="Preencher dias vazios automaticamente">
+                <i class="bi bi-magic"></i> Preencher Escala Rotativa
+            </button>
             <a href="{{ route('scales.print', ['start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]) }}" 
             target="_blank" 
             class="btn btn-danger me-2">
@@ -103,6 +106,12 @@
     @csrf
     <input type="hidden" name="date" id="regDate">
     <input type="hidden" name="mode" id="regMode">
+</form>
+
+<form id="form-auto-generate" action="{{ route('scales.auto') }}" method="POST" style="display: none;" onsubmit="return confirm('Deseja preencher automaticamente os dias vazios seguindo a rotação?');">
+    @csrf
+    <input type="hidden" name="start_date" value="{{ $start->format('Y-m-d') }}">
+    <input type="hidden" name="end_date" value="{{ $end->format('Y-m-d') }}">
 </form>
 
 <script>

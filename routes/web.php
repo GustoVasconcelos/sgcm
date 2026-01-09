@@ -29,18 +29,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-    // Novas Rotas de Escala Contínua
+    // Rotas de Escala
     Route::get('scales', [\App\Http\Controllers\ScaleController::class, 'index'])->name('scales.index');
     Route::get('scales/manage', [\App\Http\Controllers\ScaleController::class, 'manage'])->name('scales.manage');
     Route::post('scales/store', [\App\Http\Controllers\ScaleController::class, 'store'])->name('scales.store');
     Route::get('scales/print', [\App\Http\Controllers\ScaleController::class, 'print'])->name('scales.print');
     
+    // Rota de Gerar Escala Rotativa
+    Route::post('scales/auto', [\App\Http\Controllers\ScaleController::class, 'autoGenerate'])->name('scales.auto');
+    
     // Rota de Regenerar Dia
     Route::post('scales/regenerate', [\App\Http\Controllers\ScaleController::class, 'regenerateDay'])->name('scales.day.regenerate');
-
-    // Rotas de Relatório RH Escalas
-    Route::get('reports/rh', [\App\Http\Controllers\ScaleController::class, 'rhForm'])->name('reports.rh');
-    Route::post('reports/rh', [\App\Http\Controllers\ScaleController::class, 'rhGenerate'])->name('reports.rh.generate');
 
     // Rota das ferias
     Route::resource('vacations', \App\Http\Controllers\VacationController::class);

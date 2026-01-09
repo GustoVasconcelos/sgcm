@@ -290,4 +290,107 @@ class ScaleController extends Controller
 
         return $pdf->stream('ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf');
     }
+
+    public function autoGenerate(Request $request)
+    {
+        $start = Carbon::parse($request->start_date);
+        $end = Carbon::parse($request->end_date);
+        
+        // Busca TODOS os 5 operadores
+        $allOperators = $this->getOperators()->pluck('id')->toArray();
+        
+        if (count($allOperators) !== 5) {
+            return back()->with('error', 'A geração automática exige EXATAMENTE 5 operadores ativos no sistema.');
+        }
+
+        $current = $start->copy();
+        $daysFilled = 0;
+
+        while ($current <= $end) {
+            // 1. Verifica se o dia atual já está preenchido (Segurança)
+            $hasShifts = ScaleShift::where('date', $current->format('Y-m-d'))
+                ->whereIn('order', [1, 2, 3, 4])
+                ->whereNotNull('user_id')
+                ->exists();
+
+            if ($hasShifts) {
+                $current->addDay();
+                continue; // Pula dias já preenchidos
+            }
+
+            // 2. Busca o Dia Anterior (Referência)
+            $yesterday = $current->copy()->subDay();
+            $yesterdayShifts = ScaleShift::where('date', $yesterday->format('Y-m-d'))->get();
+
+            // Precisamos de 4 turnos preenchidos ontem para calcular a rotação
+            $workedYesterday = $yesterdayShifts->whereNotNull('user_id')->whereIn('order', [1, 2, 3, 4]);
+
+            if ($workedYesterday->count() < 4) {
+                // Se ontem foi feriado ou incompleto, não dá pra adivinhar a sequência
+                $current->addDay();
+                continue;
+            }
+
+            // Mapeia: Quem estava em qual Order ontem?
+            $mapYesterday = [];
+            foreach ($workedYesterday as $shift) {
+                $mapYesterday[$shift->order] = $shift->user_id;
+            }
+
+            // 3. Aplica a Rotação Negativa
+            // Order 1 (06h) <- Vem quem estava na Order 2 (12h)
+            // Order 2 (12h) <- Vem quem estava na Order 3 (18h)
+            // Order 3 (18h) <- Vem quem estava na Order 4 (00h)
+            // Order 4 (00h) <- Vem quem estava de FOLGA
+            
+            // Descobre quem estava de folga (Quem está na lista de todos, mas não trabalhou ontem)
+            $workedIds = array_values($mapYesterday);
+            $folgaYesterday = array_diff($allOperators, $workedIds);
+            $userFolgaYesterday = reset($folgaYesterday); // Pega o primeiro (e único) ID
+
+            // Monta o array de novos turnos [Order => UserID]
+            $newRotation = [
+                1 => $mapYesterday[2] ?? null, // Quem fez 12h ontem -> faz 06h hoje
+                2 => $mapYesterday[3] ?? null, // Quem fez 18h ontem -> faz 12h hoje
+                3 => $mapYesterday[4] ?? null, // Quem fez 00h ontem -> faz 18h hoje
+                4 => $userFolgaYesterday,      // Quem folgou ontem -> faz 00h hoje
+            ];
+
+            // 4. Salva no Banco
+            // Salva os turnos de trabalho
+            foreach ($newRotation as $order => $userId) {
+                if ($userId) {
+                    ScaleShift::updateOrCreate(
+                        ['date' => $current->format('Y-m-d'), 'order' => $order],
+                        ['user_id' => $userId, 'name' => $this->getShiftName($order)]
+                    );
+                }
+            }
+
+            // Salva a Folga de hoje (Quem fez Order 1 ontem)
+            if (isset($mapYesterday[1])) {
+                ScaleShift::updateOrCreate(
+                    ['date' => $current->format('Y-m-d'), 'order' => 5],
+                    ['user_id' => $mapYesterday[1], 'name' => 'FOLGA']
+                );
+            }
+
+            $daysFilled++;
+            $current->addDay();
+        }
+
+        return back()->with('success', "$daysFilled dias foram preenchidos automaticamente.");
+    }
+
+    // Helper para nomes dos turnos
+    private function getShiftName($order) {
+        $names = [
+            1 => '06:00 - 12:00',
+            2 => '12:00 - 18:00',
+            3 => '18:00 - 00:00',
+            4 => '00:00 - 06:00',
+            5 => 'FOLGA'
+        ];
+        return $names[$order] ?? 'Turno';
+    }
 }
