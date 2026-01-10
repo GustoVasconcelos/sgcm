@@ -56,13 +56,14 @@
     </div>
 
     </div> <div class="fixed-bottom text-center pb-3">
-        <small class="text-secondary opacity-75">
-        Feito por 
-        <a href="mailto:augusto@lothuscorp.com.br" class="text-reset text-decoration-none fw-bold">
-            Augusto Vasconcelos
-        </a> 
-        - {{ date('Y') }}
-    </small>
+        <small class="text-secondary">
+            &copy; {{ date('Y') }} SGCM - Sistema Gerenciador do Controle Mestre
+            <br>
+            Feito por 
+            <a href="mailto:augusto@lothuscorp.com.br" class="text-reset text-decoration-none fw-bold">
+                Augusto Vasconcelos
+            </a>
+        </small>
     </div>
 
 </body>

@@ -62,8 +62,8 @@
                                 @endphp
                                 
                                 <tr>
-                                    <td style="width: 40%; vertical-align: middle;">
-                                        <span class="badge {{ $shift->name == 'FOLGA' ? 'bg-warning text-dark' : 'bg-secondary' }} w-100">
+                                    <td class="fs-5">
+                                        <span class="badge {{ $shift->name == 'FOLGA' ? 'text-bg-warning' : 'text-bg-secondary' }} w-100">
                                             {{ $shift->name }}
                                         </span>
                                         <input type="hidden" name="names[{{ $uniqueKey }}]" value="{{ $shift->name }}">
