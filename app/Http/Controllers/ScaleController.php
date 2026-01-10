@@ -30,6 +30,10 @@ class ScaleController extends Controller
     {
         $start = $request->start_date ? Carbon::parse($request->start_date) : Carbon::today();
         $end = $request->end_date ? Carbon::parse($request->end_date) : Carbon::today()->addDays(6);
+
+        if ($start > $end) {
+            return back()->with('error', 'Data inicial maior que a Data final.');
+        }
         
         if ($end->diffInDays($start) > 40) {
             return back()->with('error', 'Selecione um período de no máximo 40 dias.');
@@ -296,90 +300,118 @@ class ScaleController extends Controller
         $start = Carbon::parse($request->start_date);
         $end = Carbon::parse($request->end_date);
         
-        // Busca TODOS os 5 operadores
+        // 1. Validação dos 5 Operadores
         $allOperators = $this->getOperators()->pluck('id')->toArray();
-        
         if (count($allOperators) !== 5) {
-            return back()->with('error', 'A geração automática exige EXATAMENTE 5 operadores ativos no sistema.');
+            return back()->with('error', 'A geração automática exige EXATAMENTE 5 operadores ativos (check "Participa da Escala" no cadastro).');
         }
 
         $current = $start->copy();
         $daysFilled = 0;
+        $generatedDates = []; // --- LOG: Array para guardar as datas que foram preenchidas
 
         while ($current <= $end) {
-            // 1. Verifica se o dia atual já está preenchido (Segurança)
-            $hasShifts = ScaleShift::where('date', $current->format('Y-m-d'))
+            $currentDateStr = $current->format('Y-m-d');
+            $currentDateBr = $current->format('d/m/Y');
+
+            // 2. Verifica se o dia ATUAL já tem preenchimento válido
+            $hasShiftsToday = ScaleShift::where('date', $currentDateStr)
                 ->whereIn('order', [1, 2, 3, 4])
                 ->whereNotNull('user_id')
                 ->exists();
 
-            if ($hasShifts) {
+            if ($hasShiftsToday) {
                 $current->addDay();
-                continue; // Pula dias já preenchidos
+                continue; 
             }
 
-            // 2. Busca o Dia Anterior (Referência)
+            // 3. Busca dados do Dia ANTERIOR
             $yesterday = $current->copy()->subDay();
-            $yesterdayShifts = ScaleShift::where('date', $yesterday->format('Y-m-d'))->get();
+            $yesterdayShifts = ScaleShift::where('date', $yesterday->format('Y-m-d'))
+                ->whereNotNull('user_id')
+                ->get();
 
-            // Precisamos de 4 turnos preenchidos ontem para calcular a rotação
-            $workedYesterday = $yesterdayShifts->whereNotNull('user_id')->whereIn('order', [1, 2, 3, 4]);
-
-            if ($workedYesterday->count() < 4) {
-                // Se ontem foi feriado ou incompleto, não dá pra adivinhar a sequência
-                $current->addDay();
-                continue;
-            }
-
-            // Mapeia: Quem estava em qual Order ontem?
+            // Mapeia: [Order => UserID]
             $mapYesterday = [];
-            foreach ($workedYesterday as $shift) {
+            foreach ($yesterdayShifts as $shift) {
                 $mapYesterday[$shift->order] = $shift->user_id;
             }
 
-            // 3. Aplica a Rotação Negativa
-            // Order 1 (06h) <- Vem quem estava na Order 2 (12h)
-            // Order 2 (12h) <- Vem quem estava na Order 3 (18h)
-            // Order 3 (18h) <- Vem quem estava na Order 4 (00h)
-            // Order 4 (00h) <- Vem quem estava de FOLGA
-            
-            // Descobre quem estava de folga (Quem está na lista de todos, mas não trabalhou ontem)
-            $workedIds = array_values($mapYesterday);
-            $folgaYesterday = array_diff($allOperators, $workedIds);
-            $userFolgaYesterday = reset($folgaYesterday); // Pega o primeiro (e único) ID
+            // --- VALIDAÇÕES ---
+            if (count($mapYesterday) < 3) {
+                return back()->with('error', "Erro ao tentar gerar o dia {$currentDateBr}: O dia anterior (" . $yesterday->format('d/m/Y') . ") está vazio ou muito incompleto. Preencha-o primeiro.");
+            }
 
-            // Monta o array de novos turnos [Order => UserID]
+            $hasOrder1 = isset($mapYesterday[1]);
+            $hasOrder2 = isset($mapYesterday[2]);
+            $hasOrder3 = isset($mapYesterday[3]);
+            $hasOrder4 = isset($mapYesterday[4]);
+
+            if ($hasOrder1 && $hasOrder2 && $hasOrder3 && !$hasOrder4) {
+                return back()->with('error', "Erro ao tentar gerar o dia {$currentDateBr}: O dia anterior (" . $yesterday->format('d/m/Y') . ") parece ser uma escala de 8h (Férias/Reduzida), pois não tem o turno da madrugada (00h-06h). A rotação automática só funciona em escalas normais de 6h.");
+            }
+
+            if (!$hasOrder4) {
+                return back()->with('error', "Erro ao tentar gerar o dia {$currentDateBr}: O dia anterior (" . $yesterday->format('d/m/Y') . ") está incompleto (falta o turno da madrugada 00h-06h).");
+            }
+
+            // --- LÓGICA DE ROTAÇÃO ---
+            $workedYesterdayIds = [];
+            foreach ([1, 2, 3, 4] as $ord) {
+                if (isset($mapYesterday[$ord])) $workedYesterdayIds[] = $mapYesterday[$ord];
+            }
+            
+            $folgaYesterdayArr = array_diff($allOperators, $workedYesterdayIds);
+            
+            if (empty($folgaYesterdayArr)) {
+                return back()->with('error', "Erro de lógica no dia " . $yesterday->format('d/m') . ": Não foi possível identificar quem estava de folga ontem. Verifique se há operadores repetidos.");
+            }
+            
+            $userFolgaYesterday = reset($folgaYesterdayArr); 
+
             $newRotation = [
-                1 => $mapYesterday[2] ?? null, // Quem fez 12h ontem -> faz 06h hoje
-                2 => $mapYesterday[3] ?? null, // Quem fez 18h ontem -> faz 12h hoje
-                3 => $mapYesterday[4] ?? null, // Quem fez 00h ontem -> faz 18h hoje
-                4 => $userFolgaYesterday,      // Quem folgou ontem -> faz 00h hoje
+                1 => $mapYesterday[2] ?? null,
+                2 => $mapYesterday[3] ?? null,
+                3 => $mapYesterday[4] ?? null,
+                4 => $userFolgaYesterday,
             ];
 
-            // 4. Salva no Banco
-            // Salva os turnos de trabalho
+            // Salva Turnos
             foreach ($newRotation as $order => $userId) {
                 if ($userId) {
                     ScaleShift::updateOrCreate(
-                        ['date' => $current->format('Y-m-d'), 'order' => $order],
+                        ['date' => $currentDateStr, 'order' => $order],
                         ['user_id' => $userId, 'name' => $this->getShiftName($order)]
                     );
                 }
             }
 
-            // Salva a Folga de hoje (Quem fez Order 1 ontem)
+            // Salva Folga
             if (isset($mapYesterday[1])) {
                 ScaleShift::updateOrCreate(
-                    ['date' => $current->format('Y-m-d'), 'order' => 5],
+                    ['date' => $currentDateStr, 'order' => 5],
                     ['user_id' => $mapYesterday[1], 'name' => 'FOLGA']
                 );
             }
 
             $daysFilled++;
+            $generatedDates[] = $currentDateBr; // --- LOG: Adiciona data na lista
             $current->addDay();
         }
 
-        return back()->with('success', "$daysFilled dias foram preenchidos automaticamente.");
+        if ($daysFilled == 0) {
+            return back()->with('info', 'Nenhum dia precisou ser preenchido (os dias selecionados já estavam completos).');
+        }
+
+        // --- LOG: Registra a ação no final ---
+        ActionLog::register('Escalas', 'Geração Automática', [
+            'periodo_solicitado' => $start->format('d/m') . ' a ' . $end->format('d/m'),
+            'total_dias_criados' => $daysFilled,
+            'dias_gerados' => implode(', ', $generatedDates)
+        ]);
+        // -------------------------------------
+
+        return back()->with('success', "$daysFilled dias foram preenchidos automaticamente com a rotação.");
     }
 
     // Helper para nomes dos turnos
