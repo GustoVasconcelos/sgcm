@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     
     // Rota de Gerar Escala Rotativa
     Route::post('scales/auto', [\App\Http\Controllers\ScaleController::class, 'autoGenerate'])->name('scales.auto');
+
+    // Rota de Enviar Escala por Email
+    Route::post('scales/email', [\App\Http\Controllers\ScaleController::class, 'sendEmail'])->name('scales.email');
     
     // Rota de Regenerar Dia
     Route::post('scales/regenerate', [\App\Http\Controllers\ScaleController::class, 'regenerateDay'])->name('scales.day.regenerate');

@@ -208,25 +208,97 @@ class ScaleController extends Controller
         return $users;
     }
 
+    // --- NOVO: Método para Enviar Email ---
+    public function sendEmail(Request $request)
+    {
+        $request->validate([
+            'recipients' => 'required|array|min:1',
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date',
+        ]);
+
+        $start = Carbon::parse($request->start_date);
+        $end = Carbon::parse($request->end_date);
+        $periodoTxt = $start->format('d/m/Y') . ' a ' . $end->format('d/m/Y');
+
+        // 1. Gera o PDF
+        $pdf = $this->generatePdfObject($start, $end);
+        $pdfContent = $pdf->output();
+
+        // 2. Prepara variáveis de envio
+        $recipients = User::whereIn('id', $request->recipients)->get();
+        $senderName = Auth::user()->name; // Quem está clicando no botão
+        $sentNames = [];
+        $failedNames = []; // Para logar quem deu erro
+
+        // 3. Loop de Envio
+        foreach ($recipients as $user) {
+            try {
+                // Passamos o $senderName para o Email
+                \Illuminate\Support\Facades\Mail::to($user->email)
+                    ->send(new \App\Mail\ScaleShipped($pdfContent, $periodoTxt, $senderName));
+                
+                $sentNames[] = $user->name;
+            } catch (\Exception $e) {
+                // Se der erro, guarda o nome e o motivo para o Log
+                $failedNames[] = "{$user->name} ({$e->getMessage()})";
+            }
+        }
+
+        // 4. Log de Sucesso (se houve envios)
+        if (count($sentNames) > 0) {
+            ActionLog::register('Escalas', 'Enviar por Email', [
+                'periodo' => $periodoTxt,
+                'enviado_por' => $senderName,
+                'destinatarios' => implode(', ', $sentNames),
+                'total_sucesso' => count($sentNames)
+            ]);
+        }
+
+        // 5. Log de ERRO (se houve falhas)
+        if (count($failedNames) > 0) {
+            ActionLog::register('Escalas', 'Erro no Envio de Email', [
+                'periodo' => $periodoTxt,
+                'tentativa_de' => $senderName,
+                'falhas_detalhadas' => $failedNames // Salva array com erros técnicos
+            ]);
+            
+            // Retorna com aviso amarelo (warning) se houve falhas parciais
+            return back()->with('warning', 'Envio finalizado com ressalvas. Falha ao enviar para: ' . count($failedNames) . ' operadores. Verifique os logs.');
+        }
+
+        return back()->with('success', 'Escala enviada com sucesso para ' . count($sentNames) . ' operadores!');
+    }
+
+    // --- REFATORADO: Método Imprimir ---
     public function print(Request $request)
     {
-        // 1. Define as datas
         $start = $request->start_date ? Carbon::parse($request->start_date) : Carbon::today();
         $end = $request->end_date ? Carbon::parse($request->end_date) : Carbon::today()->addDays(6);
 
-        // 2. Busca o que já existe no banco
-        $existingShifts = ScaleShift::whereBetween('date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
-            ->orderBy('date')
-            ->orderBy('order')
-            ->get()
-            ->groupBy(function($item) {
-                return $item->date->format('Y-m-d');
-            });
+        // Gera o objeto PDF usando o método auxiliar
+        $pdf = $this->generatePdfObject($start, $end);
 
-        // 3. Monta a grade (Preenchendo dias vazios com "fakes")
+        // Log
+        ActionLog::register('Escalas', 'Baixar PDF', [
+            'periodo' => $start->format('d/m/Y') . ' a ' . $end->format('d/m/Y'),
+            'arquivo' => 'ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf'
+        ]);
+
+        return $pdf->stream('ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf');
+    }
+
+    // --- NOVO: Método Privado Auxiliar ---
+    private function generatePdfObject($start, $end)
+    {
+        // 1. Busca dados
+        $existingShifts = ScaleShift::whereBetween('date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->orderBy('date')->orderBy('order')->get()
+            ->groupBy(function($item) { return $item->date->format('Y-m-d'); });
+
+        // 2. Monta Grade (Preenche vazios)
         $days = [];
         $current = $start->copy();
-
         while ($current <= $end) {
             $dateStr = $current->format('Y-m-d');
             $shiftsForDay = $existingShifts->get($dateStr);
@@ -234,7 +306,6 @@ class ScaleController extends Controller
             if ($shiftsForDay && $shiftsForDay->isNotEmpty()) {
                 $days[$dateStr] = $shiftsForDay;
             } else {
-                // Gera estrutura vazia na memória
                 $fakeShifts = collect([]);
                 $defaults = [
                     ['name' => '06:00 - 12:00', 'order' => 1],
@@ -243,42 +314,27 @@ class ScaleController extends Controller
                     ['name' => '00:00 - 06:00', 'order' => 4],
                     ['name' => 'FOLGA',         'order' => 5],
                 ];
-
                 foreach ($defaults as $def) {
-                    $fakeShift = new ScaleShift([
-                        'date' => $dateStr,
-                        'name' => $def['name'],
-                        'order' => $def['order'],
-                        'user_id' => null
-                    ]);
-                    $fakeShifts->push($fakeShift);
+                    $fakeShifts->push(new ScaleShift([
+                        'date' => $dateStr, 'name' => $def['name'], 'order' => $def['order'], 'user_id' => null
+                    ]));
                 }
                 $days[$dateStr] = $fakeShifts;
             }
             $current->addDay();
         }
 
-        // 4. Pega os usuários
+        // 3. Prepara Usuários
         $users = $this->getOperators();
-
-        // --- CORREÇÃO AQUI ---
-        // Convertemos o array $days para uma Collection do Laravel
-        // para que a função ->chunk(2) funcione no PDF
-        $days = collect($days); 
-
-        // --- CORREÇÃO START: Injetar o "NÃO HÁ" na lista do PDF ---
-        $userNaoHa = \App\Models\User::where('name', 'NÃO HÁ')->first();
+        $days = collect($days);
         
+        $userNaoHa = User::where('name', 'NÃO HÁ')->first();
         if ($userNaoHa) {
-            // Define o display_name manualmente, pois o getOperators não calculou pra ele
             $userNaoHa->display_name = 'NÃO HÁ';
-            
-            // Empurra ele para dentro da coleção de usuários
             $users->push($userNaoHa);
         }
-        // --- CORREÇÃO END ---
 
-        // 5. Configurações do PDF
+        // 4. Configura PDF
         $startDate = $start;
         $endDate = $end;
         $reportTitle = 'ESCALA DE TRABALHO'; 
@@ -286,13 +342,7 @@ class ScaleController extends Controller
         $pdf = Pdf::loadView('scales.pdf', compact('days', 'users', 'startDate', 'endDate', 'reportTitle'));
         $pdf->setPaper('a4', 'portrait');
 
-        // REGISTRO DE LOG
-        ActionLog::register('Escalas', 'Baixar PDF', [
-            'periodo' => $start->format('d/m/Y') . ' a ' . $end->format('d/m/Y'),
-            'arquivo' => 'ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf'
-        ]);
-
-        return $pdf->stream('ESCALA_' . $start->format('d-m') . '_a_' . $end->format('d-m') . '.pdf');
+        return $pdf;
     }
 
     public function autoGenerate(Request $request)

@@ -1,49 +1,86 @@
 @extends('layout')
 
 @section('content')
-<div class="container mt-4">
+<div class="container mt-2">
     
     <div class="row mb-4">
-        <div class="col-12 text-center text-white">
+        <div class="col-12 text-center">
             <h2 class="fw-light">Olá, <span class="fw-bold">{{ explode(' ', Auth::user()->name)[0] }}</span>!</h2>
-            <p class="text-white-50">Bem-vindo ao SGCM. Aqui está o resumo das suas atividades.</p>
         </div>
     </div>
 
-    @if(Auth::user()->profile != 'admin')
+    @if(Auth::user()->is_operator)
     <div class="row justify-content-center mb-5">
         <div class="col-md-8">
-            <div class="card border-primary shadow-lg" style="border-left: 5px solid #0d6efd;">
-                <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap">
+            {{-- LÓGICA DE CORES: Se for folga hoje, usa verde (Success). Se for trabalho, usa azul (Primary) --}}
+            @php
+                $isFolgaHoje = $todayShift && ($todayShift->name === 'FOLGA');
+                $cardClass = $isFolgaHoje ? 'border-success' : 'border-primary';
+                $textClass = $isFolgaHoje ? 'text-success' : 'text-primary';
+                $icon = $isFolgaHoje ? 'bi-cup-hot' : 'bi-clock-history';
+            @endphp
+
+            <div class="card {{ $cardClass }} shadow-lg">
+                <div class="card-body p-3">
                     
-                    <div>
-                        <h5 class="card-title text-uppercase text-primary mb-1">
-                            <i class="bi bi-clock-history me-2"></i> Seu Próximo Turno
+                    {{-- CABEÇALHO --}}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title text-uppercase {{ $textClass }} mb-0">
+                            <i class="bi {{ $icon }} me-2"></i> 
+                            {{ $isFolgaHoje ? 'Bom descanso!' : 'Seu Próximo Turno' }}
                         </h5>
                         
-                        @if($nextShift)
-                            @php 
-                                $date = \Carbon\Carbon::parse($nextShift->date); 
-                                $isToday = $date->isToday();
-                                $isTomorrow = $date->isTomorrow();
-                            @endphp
-
-                            <h3 class="display-6 fw-bold mb-0">
-                                {{ $isToday ? 'HOJE' : ($isTomorrow ? 'AMANHÃ' : $date->format('d/m')) }}
-                            </h3>
-                            <p class="fs-5 mb-0 ">
-                                {{ mb_strtoupper($date->locale('pt_BR')->dayName, 'UTF-8') }} • {{ $nextShift->name }}
-                            </p>
-                        @else
-                            <h3 class="fs-4 fw-bold mb-0 t">Sem escalas futuras</h3>
-                            <p class="mb-0 small text-muted">Você não tem turnos agendados nos próximos dias.</p>
-                        @endif
-                    </div>
-
-                    <div class="mt-3 mt-md-0">
-                        <a href="{{ route('scales.index') }}" class="btn btn-outline-primary rounded-pill px-4">
+                        <a href="{{ route('scales.index') }}" class="btn btn-outline-primary rounded-pill px-4 btn-sm">
                             Ver Escala Completa
                         </a>
+                    </div>
+
+                    {{-- CONTEÚDO PRINCIPAL --}}
+                    <div class="d-flex justify-content-between align-items-center">
+                        {{-- CENÁRIO 1: É HOJE E É FOLGA --}}
+                        @if($isFolgaHoje)
+                            <h3 class="display-6 fw-bold mb-2 text-success">
+                                HOJE VOCÊ ESTÁ DE FOLGA
+                            </h3>
+                            
+                            {{-- Se tiver um próximo trabalho agendado, mostra quando volta --}}
+                            @if($nextWorkShift)
+                                @php 
+                                    $dateWork = \Carbon\Carbon::parse($nextWorkShift->date); 
+                                    $isTomorrow = $dateWork->isTomorrow();
+                                @endphp
+                                <div>
+                                    <div class="fs-5">
+                                        {{ $isTomorrow ? 'Amanhã' : $dateWork->format('d/m') }} 
+                                        <i class="bi bi-arrow-right-short text-muted mx-1"></i> 
+                                        {{ $nextWorkShift->name }}
+                                    </div>
+                                </div>
+                            @else
+                                <p class="text-muted">Nenhum turno futuro agendado.</p>
+                            @endif
+
+                        {{-- CENÁRIO 2: NÃO É FOLGA (É TRABALHO OU NÃO TEM NADA HOJE) --}}
+                        @else
+                            @if($nextWorkShift)
+                                @php 
+                                    $date = \Carbon\Carbon::parse($nextWorkShift->date); 
+                                    $isToday = $date->isToday();
+                                    $isTomorrow = $date->isTomorrow();
+                                @endphp
+
+                                <h3 class="display-6 fw-bold mb-0">
+                                    {{ $isToday ? 'HOJE' : ($isTomorrow ? 'AMANHÃ' : $date->format('d/m')) }} 
+                                    
+                                    <i class="bi bi-arrow-right-short text-muted mx-2"></i> 
+                                    
+                                    {{ mb_strtoupper($date->locale('pt_BR')->dayName, 'UTF-8') }} • {{ $nextWorkShift->name }}
+                                </h3>
+                            @else
+                                <h3 class="fs-4 fw-bold mb-0">Sem escalas futuras</h3>
+                                <p class="mb-0 small text-muted">Você não tem turnos agendados nos próximos dias.</p>
+                            @endif
+                        @endif
                     </div>
 
                 </div>
@@ -143,8 +180,8 @@
                         <div class="icon-box mb-3 text-white">
                             <i class="bi bi-gear-fill fs-1"></i>
                         </div>
-                        <h5 class="card-title">Configurar Logs</h5>
-                        <p class="card-text small text-white-50">Definir tempo de retenção e limpeza.</p>
+                        <h5 class="card-title">Configurações</h5>
+                        <p class="card-text small text-white-50">Definir configurações do sistema.</p>
                         <span class="badge bg-danger">Admin</span>
                     </div>
                 </div>

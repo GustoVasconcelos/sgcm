@@ -110,7 +110,7 @@
             <small class="text-secondary">
                 &copy; {{ date('Y') }} SGCM - Sistema Gerenciador do Controle Mestre
                 <br>
-                Feito por 
+                Desenvolvido por 
                 <a href="mailto:augusto@lothuscorp.com.br" class="text-reset text-decoration-none fw-bold">
                     Augusto Vasconcelos
                 </a>

@@ -14,17 +14,20 @@
         </h4>
         <div>
             <button type="submit" form="form-auto-generate" class="btn btn-warning text-dark fw-bold me-2" title="Preencher dias vazios automaticamente">
-                <i class="bi bi-magic"></i> Preencher Escala Rotativa
+                <i class="bi bi-magic"></i> Escala Rotativa
             </button>
-            <a href="{{ route('scales.print', ['start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]) }}" 
-            target="_blank" 
-            class="btn btn-danger me-2">
+            <button type="button" class="btn btn-primary fw-bold me-2" data-bs-toggle="modal" data-bs-target="#emailModal">
+                <i class="bi bi-envelope-at"></i> Enviar por Email
+            </button>
+            <a href="{{ route('scales.print', ['start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]) }}" target="_blank" class="btn btn-danger me-2">
                 <i class="bi bi-file-pdf"></i> Baixar PDF
             </a>
-
-            <a href="{{ route('scales.index') }}" class="btn btn-secondary me-2">Trocar Datas</a>
-            
-            <button type="submit" class="btn btn-success">Salvar Alterações</button>
+            <a href="{{ route('scales.index') }}" class="btn btn-secondary me-2">
+                <i class="bi bi-calendar3"></i> Trocar Datas
+            </a>            
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-floppy"></i> Salvar Escala
+            </button>
         </div>
     </div>
 
@@ -114,7 +117,59 @@
     <input type="hidden" name="end_date" value="{{ $end->format('Y-m-d') }}">
 </form>
 
+<div class="modal fade" id="emailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('scales.email') }}" method="POST">
+            @csrf
+            <input type="hidden" name="start_date" value="{{ $start->format('Y-m-d') }}">
+            <input type="hidden" name="end_date" value="{{ $end->format('Y-m-d') }}">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-envelope-at"></i> Enviar Escala por Email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">Selecione os operadores que receberão o arquivo PDF desta escala.</p>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleCheckboxes(true)">Marcar Todos</button>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-danger" onclick="toggleCheckboxes(false)">Desmarcar Todos</button>
+                    </div>
+
+                    <div class="list-group">
+                        @foreach($users as $user)
+                            @if($user->name != 'NÃO HÁ' && $user->email) <label class="list-group-item d-flex gap-3 align-items-center cursor-pointer">
+                                    <input class="form-check-input flex-shrink-0 recipient-checkbox" type="checkbox" name="recipients[]" value="{{ $user->id }}" checked>
+                                    <span class="pt-1 form-checked-content">
+                                        <strong>{{ $user->name }}</strong>
+                                        <small class="d-block text-muted">{{ $user->email }}</small>
+                                    </span>
+                                </label>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Enviar Agora
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+</style>
+
 <script>
+    function toggleCheckboxes(state) {
+        document.querySelectorAll('.recipient-checkbox').forEach(el => el.checked = state);
+    }
+
     function regenerateDay(date, mode) {
         if(confirm('Isso resetará os operadores deste dia. Confirmar?')) {
             document.getElementById('regDate').value = date;
