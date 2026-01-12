@@ -20,7 +20,7 @@
                     <select name="mode" id="modeSelector" class="form-select" required onchange="updateForm()">
                         <option value="30_dias" {{ $vacation->mode == '30_dias' ? 'selected' : '' }}>30 Dias Corridos</option>
                         <option value="15_15" {{ $vacation->mode == '15_15' ? 'selected' : '' }}>2 Períodos de 15 Dias (15/15)</option>
-                        <option value="10_10_10" {{ $vacation->mode == '10_10_10' ? 'selected' : '' }}>3 Períodos de 10 Dias (10/10/10)</option>
+                        <option value="20_10" {{ $vacation->mode == '20_10' ? 'selected' : '' }}>2 Períodos de 20 e 10 Dias (20/10)</option>
                         <option value="20_venda" {{ $vacation->mode == '20_venda' ? 'selected' : '' }}>20 Dias + Venda</option>
                     </select>
                 </div>
@@ -65,31 +65,7 @@
         </form>
     </div>
 </div>
-
-<script>
-    // Mesma função do create, mas precisamos rodar ela ao carregar a página
-    function updateForm() {
-        const mode = document.getElementById('modeSelector').value;
-        const box2 = document.getElementById('period2_box');
-        
-        // Pega inputs do período 2 para controlar o 'required'
-        const p2Inputs = box2.querySelectorAll('input');
-
-        // Modos que usam APENAS 1 período
-        if (mode === '30_dias' || mode === '20_venda') {
-            box2.classList.add('d-none'); // Esconde o 2º
-            removeRequired(p2Inputs);
-        } 
-        // Modos que usam 2 períodos (15/15 OU 20/10)
-        else if (mode === '15_15' || mode === '20_10') {
-            box2.classList.remove('d-none'); // Mostra o 2º
-            setRequired(p2Inputs);
-        }
-    }
-
-    // Executa ao abrir a página para mostrar os campos corretos baseados no que veio do banco
-    document.addEventListener('DOMContentLoaded', function() {
-        updateForm();
-    });
-</script>
+@push('scripts')
+    <script src="{{ asset('js/vacation.js') }}"></script>
+@endpush
 @endsection
