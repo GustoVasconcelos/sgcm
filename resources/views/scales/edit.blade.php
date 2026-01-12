@@ -165,17 +165,7 @@
     .cursor-pointer { cursor: pointer; }
 </style>
 
-<script>
-    function toggleCheckboxes(state) {
-        document.querySelectorAll('.recipient-checkbox').forEach(el => el.checked = state);
-    }
-
-    function regenerateDay(date, mode) {
-        if(confirm('Isso resetará os operadores deste dia. Confirmar?')) {
-            document.getElementById('regDate').value = date;
-            document.getElementById('regMode').value = mode;
-            document.getElementById('regenerateForm').submit();
-        }
-    }
-</script>
+@push('scripts')
+    <script src="{{ asset('js/scales.js') }}"></script>
+@endpush
 @endsection
