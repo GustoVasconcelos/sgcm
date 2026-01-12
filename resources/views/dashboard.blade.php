@@ -10,85 +10,108 @@
     </div>
 
     @if(Auth::user()->is_operator)
-    <div class="row justify-content-center mb-5">
+    <div class="row justify-content-center mb-4">
         <div class="col-md-8">
-            {{-- LÓGICA DE CORES: Se for folga hoje, usa verde (Success). Se for trabalho, usa azul (Primary) --}}
-            @php
-                $isFolgaHoje = $todayShift && ($todayShift->name === 'FOLGA');
-                $cardClass = $isFolgaHoje ? 'border-success' : 'border-primary';
-                $textClass = $isFolgaHoje ? 'text-success' : 'text-primary';
-                $icon = $isFolgaHoje ? 'bi-cup-hot' : 'bi-clock-history';
-            @endphp
-
-            <div class="card {{ $cardClass }} shadow-lg">
-                <div class="card-body p-3">
+            
+            @if($displayShift)
+                {{-- Lógica Visual: Verde para Folga, Azul para Trabalho --}}
+                @php
+                    $isFolga = ($displayShift->name === 'FOLGA');
+                    $date = \Carbon\Carbon::parse($displayShift->date);
                     
-                    {{-- CABEÇALHO --}}
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title text-uppercase {{ $textClass }} mb-0">
-                            <i class="bi {{ $icon }} me-2"></i> 
-                            {{ $isFolgaHoje ? 'Bom descanso!' : 'Seu Próximo Turno' }}
-                        </h5>
+                    // Textos dinâmicos baseados na data do card exibido
+                    if ($date->isToday()) {
+                        $timeText = 'HOJE';
+                        $titleText = $isFolga ? 'Hoje: Descanso' : 'Seu Turno de Hoje';
+                    } elseif ($date->isTomorrow()) {
+                        $timeText = 'AMANHÃ';
+                        $titleText = $isFolga ? 'Amanhã: Descanso' : 'Seu Próximo Turno';
+                    } else {
+                        $timeText = $date->format('d/m');
+                        $titleText = 'Próximo Turno';
+                    }
+
+                    $cardClass = $isFolga ? 'border-success' : 'border-primary';
+                    $textClass = $isFolga ? 'text-success' : 'text-primary';
+                    $btnClass = $isFolga ? 'btn-outline-success' : 'btn-outline-primary';
+                    $icon = $isFolga ? 'bi-cup-hot' : 'bi-clock-history';
+                @endphp
+
+                <div class="card {{ $cardClass }} shadow-lg">
+                    <div class="card-body p-4">
                         
-                        <a href="{{ route('scales.index') }}" class="btn btn-outline-primary rounded-pill px-4 btn-sm">
-                            Ver Escala Completa
+                        {{-- CABEÇALHO --}}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-uppercase {{ $textClass }} mb-0">
+                                <i class="bi {{ $icon }} me-2"></i> {{ $titleText }}
+                            </h5>
+                            
+                            <a href="{{ route('scales.index') }}" class="btn {{ $btnClass }} rounded-pill px-4 btn-sm">
+                                Ver Escala Completa
+                            </a>
+                        </div>
+
+                        {{-- CONTEÚDO PRINCIPAL --}}
+                        <div class="d-flex justify-content-between">
+                            <h3 class="display-6 {{ $textClass }} fw-bold mb-0">
+                                {{ $timeText }} 
+                                
+                                @if(!$date->isToday() && !$date->isTomorrow())
+                                    <small class="text-muted fs-6 ms-1">({{ mb_strtoupper($date->locale('pt_BR')->dayName) }})</small>
+                                @endif
+
+                                @if(!$isFolga)
+                                    <i class="bi bi-arrow-right-short text-muted mx-2"></i> 
+                                    {{ $displayShift->name }}
+                                @else
+                                    <span class="text-success ms-2">- FOLGA</span>
+                                @endif
+                            </h3>
+
+                            {{-- SE FOR FOLGA, MOSTRA QUANDO VOLTA --}}
+                            @if($isFolga && $returnShift)
+                                @php 
+                                    $dateReturn = \Carbon\Carbon::parse($returnShift->date); 
+                                    $isRetTomorrow = $dateReturn->isTomorrow();
+                                @endphp
+                                
+                                <div class="d-flex flex-column align-items-center">
+                                    <p class="mb-1 small text-muted text-uppercase fw-bold">
+                                        <i class="bi bi-arrow-return-right"></i> <span class="{{ $textClass }}">Retorno ao trabalho</span>
+                                    </p>
+                                    <span class="fs-5 {{ $textClass }} fw-semibold">
+                                        {{ $isRetTomorrow ? 'Amanhã' : $dateReturn->format('d/m') }} 
+                                        
+                                        @if(!$isRetTomorrow)
+                                            <small class="text-muted fw-normal">({{ mb_strtoupper($dateReturn->locale('pt_BR')->shortDayName) }})</small>
+                                        @endif
+                                        
+                                        : {{ $returnShift->name }}
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+
+                    </div>
+                </div>
+
+            @else
+                {{-- Caso não tenha NENHUM registro futuro no banco --}}
+                <div class="card border-secondary shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h3 class="fs-4 fw-bold mb-0 text-muted">Sem escalas futuras</h3>
+                        <p class="mb-3 small text-muted">Não há turnos cadastrados para você.</p>
+                        <a href="{{ route('scales.index') }}" class="btn {{ $btnClass }} rounded-pill btn-sm">
+                            Verificar Escala
                         </a>
                     </div>
-
-                    {{-- CONTEÚDO PRINCIPAL --}}
-                    <div class="d-flex justify-content-between align-items-center">
-                        {{-- CENÁRIO 1: É HOJE E É FOLGA --}}
-                        @if($isFolgaHoje)
-                            <h3 class="display-6 fw-bold mb-2 text-success">
-                                HOJE VOCÊ ESTÁ DE FOLGA
-                            </h3>
-                            
-                            {{-- Se tiver um próximo trabalho agendado, mostra quando volta --}}
-                            @if($nextWorkShift)
-                                @php 
-                                    $dateWork = \Carbon\Carbon::parse($nextWorkShift->date); 
-                                    $isTomorrow = $dateWork->isTomorrow();
-                                @endphp
-                                <div>
-                                    <div class="fs-5">
-                                        {{ $isTomorrow ? 'Amanhã' : $dateWork->format('d/m') }} 
-                                        <i class="bi bi-arrow-right-short text-muted mx-1"></i> 
-                                        {{ $nextWorkShift->name }}
-                                    </div>
-                                </div>
-                            @else
-                                <p class="text-muted">Nenhum turno futuro agendado.</p>
-                            @endif
-
-                        {{-- CENÁRIO 2: NÃO É FOLGA (É TRABALHO OU NÃO TEM NADA HOJE) --}}
-                        @else
-                            @if($nextWorkShift)
-                                @php 
-                                    $date = \Carbon\Carbon::parse($nextWorkShift->date); 
-                                    $isToday = $date->isToday();
-                                    $isTomorrow = $date->isTomorrow();
-                                @endphp
-
-                                <h3 class="display-6 fw-bold mb-0">
-                                    {{ $isToday ? 'HOJE' : ($isTomorrow ? 'AMANHÃ' : $date->format('d/m')) }} 
-                                    
-                                    <i class="bi bi-arrow-right-short text-muted mx-2"></i> 
-                                    
-                                    {{ mb_strtoupper($date->locale('pt_BR')->dayName, 'UTF-8') }} • {{ $nextWorkShift->name }}
-                                </h3>
-                            @else
-                                <h3 class="fs-4 fw-bold mb-0">Sem escalas futuras</h3>
-                                <p class="mb-0 small text-muted">Você não tem turnos agendados nos próximos dias.</p>
-                            @endif
-                        @endif
-                    </div>
-
                 </div>
-            </div>
+            @endif
+
         </div>
     </div>
     @endif
-
+    
     <div class="row g-4">
         
         <div class="col-md-6 col-lg-3">

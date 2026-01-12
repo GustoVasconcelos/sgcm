@@ -11,26 +11,65 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $todayShift = null;
-        $nextWorkShift = null;
+        $displayShift = null; // O turno principal que será exibido (Card Grande)
+        $returnShift = null;  // O turno de retorno (Só preenchido se o principal for Folga)
         
         if (Auth::user()->is_operator) {
-            // 1. Busca o que tem para HOJE (Pode ser Folga ou Trabalho)
+            $now = Carbon::now();
+            $today = Carbon::today();
+
+            // 1. Pega o turno de HOJE
             $todayShift = ScaleShift::where('user_id', Auth::id())
-                ->whereDate('date', Carbon::today())
+                ->whereDate('date', $today)
                 ->first();
 
-            // 2. Busca o próximo turno de TRABALHO REAL (Ignora Folgas)
-            // Se hoje for trabalho, esta query vai retornar hoje mesmo (o que é correto)
-            // Se hoje for folga, ela vai pular hoje e pegar o próximo
-            $nextWorkShift = ScaleShift::where('user_id', Auth::id())
-                ->whereDate('date', '>=', Carbon::today()) // A partir de hoje
-                ->where('name', '!=', 'FOLGA') // Ignora registros de Folga
-                ->orderBy('date', 'asc')
-                ->orderBy('order', 'asc')
-                ->first();
+            $showNext = false;
+
+            // 2. Análise Temporal: Devemos mostrar o próximo?
+            if ($todayShift) {
+                // Se hoje é FOLGA, mostramos hoje mesmo ("Hoje você está de folga")
+                if ($todayShift->name === 'FOLGA') {
+                    $displayShift = $todayShift;
+                } 
+                else {
+                    // Se hoje é TRABALHO, verificamos a hora
+                    // Ex: extrai "14" de "14:00 - 22:00"
+                    $parts = explode(':', $todayShift->name);
+                    $startHour = isset($parts[0]) ? intval($parts[0]) : 0;
+
+                    // Se a hora atual for MAIOR ou IGUAL ao início do turno, mostra o PRÓXIMO
+                    if ($now->hour >= $startHour) {
+                        $showNext = true;
+                    } else {
+                        // Se ainda não começou (ex: são 08h e turno é 14h), mostra HOJE
+                        $displayShift = $todayShift;
+                    }
+                }
+            } else {
+                // Se não tem nada hoje, mostra o próximo
+                $showNext = true;
+            }
+
+            // 3. Busca o Próximo Turno (se definido pela lógica acima)
+            if ($showNext) {
+                $displayShift = ScaleShift::where('user_id', Auth::id())
+                    ->whereDate('date', '>', $today) // Estritamente maior que hoje
+                    ->orderBy('date', 'asc')
+                    ->orderBy('order', 'asc')
+                    ->first();
+            }
+
+            // 4. Lógica da Folga (Se o card principal for Folga, busca quando volta)
+            if ($displayShift && $displayShift->name === 'FOLGA') {
+                $returnShift = ScaleShift::where('user_id', Auth::id())
+                    ->whereDate('date', '>', $displayShift->date) // Depois da folga
+                    ->where('name', '!=', 'FOLGA') // Que seja trabalho
+                    ->orderBy('date', 'asc')
+                    ->orderBy('order', 'asc')
+                    ->first();
+            }
         }
 
-        return view('dashboard', compact('todayShift', 'nextWorkShift'));
+        return view('dashboard', compact('displayShift', 'returnShift'));
     }
 }
