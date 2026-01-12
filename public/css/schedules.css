@@ -1,0 +1,12 @@
+.row-ok {
+    background-color: #d1e7dd !important;
+} /* Verde Sucesso do Bootstrap */
+.btn-toggle-off {
+    color: #ccc; 
+    border: 1px solid #ccc;
+}
+.btn-toggle-on {
+    color: white;
+    background-color: #198754;
+    border: 1px solid #198754;
+}
