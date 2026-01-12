@@ -26,7 +26,7 @@ class ScaleShipped extends Mailable
     {
         $filename = 'Escala_' . str_replace([' ', '/'], ['_', '-'], $this->period) . '.pdf';
 
-        return $this->subject('Nova Escala de Trabalho: ' . $this->period)
+        return $this->subject('Escala ' . $this->period)
                     ->view('emails.scale_plain')
                     ->attachData($this->pdfContent, $filename, [
                         'mime' => 'application/pdf',
