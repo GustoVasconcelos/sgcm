@@ -1,0 +1,46 @@
+/* CSS da pagina afinacao.blade.php */
+.input-time {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-align: center;
+}
+.status-card {
+    transition: all 0.3s ease;
+}
+.status-ok { 
+    background-color: #198754;
+    color: white;
+}
+.status-danger { 
+    background-color: #dc3545;
+    color: white;
+}
+.status-tuned {
+    background-color: #0d6efd;
+    color: white;
+}
+.totals-panel {
+    position: sticky; top: 20px;
+}
+.total-display {
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: sans-serif;
+}
+.acc-display {
+    font-family: 'Courier New', monospace;
+    font-size: 1.3rem;
+    color: #6c757d;
+    font-weight: bold;
+    display: block;
+    text-align: right;
+}
+.acc-label {
+    font-size: 0.7rem;
+    color: #adb5bd;
+    text-transform: uppercase;
+    display: block;
+    text-align: right;
+    line-height: 1;
+}
