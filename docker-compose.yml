@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Aplicação (PHP)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sgcm_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - sgcm_network
+
+  # Web Server (Nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: sgcm_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80" # Expondo na porta 8080 para não conflitar com AdGuard ou outros
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - sgcm_network
+
+  # Banco de Dados (MariaDB - Mais leve que MySQL 8)
+  db:
+    image: mariadb:10.6
+    container_name: sgcm_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    # COMANDO CRÍTICO: Limita o uso de RAM do MariaDB
+    command: --innodb-buffer-pool-size=128M --max-connections=50
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - sgcm_network
+
+networks:
+  sgcm_network:
+    driver: bridge
+
+volumes:
+  db_data:
