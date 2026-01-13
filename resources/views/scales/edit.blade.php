@@ -7,16 +7,16 @@
     <input type="hidden" name="start_date" value="{{ $start->format('Y-m-d') }}">
     <input type="hidden" name="end_date" value="{{ $end->format('Y-m-d') }}">
 
-    <div class="d-flex justify-content-between align-items-center mb-3 py-3 border-bottom" style="z-index: 1000;">
-        <h4 class="m-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold">
             <i class="bi bi-calendar3"></i> 
             Escalas de {{ $start->format('d/m') }} a {{ $end->format('d/m') }}
-        </h4>
+        </h3>
         <div>
-            <button type="submit" form="form-auto-generate" class="btn btn-warning text-dark fw-bold me-2" title="Preencher dias vazios automaticamente">
+            <button type="submit" form="form-auto-generate" class="btn btn-warning me-2" title="Preencher dias vazios automaticamente">
                 <i class="bi bi-magic"></i> Escala Rotativa
             </button>
-            <button type="button" class="btn btn-primary fw-bold me-2" data-bs-toggle="modal" data-bs-target="#emailModal">
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#emailModal">
                 <i class="bi bi-envelope-at"></i> Enviar por Email
             </button>
             <a href="{{ route('scales.print', ['start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]) }}" target="_blank" class="btn btn-danger me-2">
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row border-top py-4">
         @foreach($days as $dateString => $shifts)
             @php $date = \Carbon\Carbon::parse($dateString); @endphp
             

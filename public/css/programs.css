@@ -1,0 +1,15 @@
+/* CSS da pagina dos programas (crud) */
+
+/* Amostra de cor (quadradinho) */
+.color-swatch {
+    width: 25px; 
+    height: 25px; 
+    border-radius: 4px; 
+    border: 1px solid #ddd;
+    display: inline-block; /* Garante que respeite largura/altura */
+}
+
+.card-programs {
+    max-width: 600px;
+    margin: auto;
+}

@@ -1,10 +1,13 @@
 @extends('layout')
 
 @section('content')
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/programs.css') }}">
+@endpush
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3><i class="bi bi-collection-play"></i> Catálogo de Programas</h3>
     <div>
-        <a href="{{ route('schedules.index') }}" class="btn btn-outline-secondary me-2">Voltar para Grade</a>
+        <a href="{{ route('schedules.index') }}" class="btn btn-outline-secondary me-2"><i class="bi bi-arrow-left"></i> Voltar para Grade</a>
         <a href="{{ route('programs.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Programa</a>
     </div>
 </div>
@@ -24,12 +27,12 @@
                 @foreach($programs as $program)
                 <tr>
                     <td>
-                        <div style="width: 25px; height: 25px; background-color: {{ $program->color ?? '#cccccc' }}; border-radius: 4px; border: 1px solid #ddd;"></div>
+                        <div class="color-swatch" style="background-color: {{ $program->color ?? '#cccccc' }};"></div>
                     </td>
                     <td class="fw-bold">{{ $program->name }}</td>
                     <td>{{ $program->default_duration }} minutos</td>
                     <td class="text-end">
-                        <a href="{{ route('programs.edit', $program->id) }}" class="btn btn-sm btn-primary">
+                        <a href="{{ route('programs.edit', $program->id) }}" class="btn btn-sm btn-primary me-2">
                             <i class="bi bi-pencil"></i>Editar
                         </a>
                         

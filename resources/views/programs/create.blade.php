@@ -1,7 +1,10 @@
 @extends('layout')
 
 @section('content')
-<div class="card shadow-sm" style="max-width: 600px; margin: auto;">
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/programs.css') }}">
+@endpush
+<div class="card card-programs shadow-sm">
     <div class="card-header bg-primary text-white">
         <h5 class="mb-0">Novo Programa</h5>
     </div>

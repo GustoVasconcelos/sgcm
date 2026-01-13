@@ -8,9 +8,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold"><i class="bi bi-broadcast"></i> Grade Fim de Semana</h3>
-        <span class="text-muted">
+        {{-- <span class="text-muted">
             {{ $saturday->format('d/m/Y') }} e {{ $sunday->format('d/m/Y') }}
-        </span>
+        </span> --}}
     </div>
 
     <div class="btn-group">

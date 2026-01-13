@@ -1,7 +1,10 @@
 @extends('layout')
 
 @section('content')
-<div class="card shadow" style="max-width: 800px; margin: 50px auto;">
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/scales.css') }}">
+@endpush
+<div class="card card-scale shadow">
     <div class="card-header">
         <h4 class="mb-0"><i class="bi bi-calendar-range"></i> Gerenciador de Escalas</h4>
     </div>
