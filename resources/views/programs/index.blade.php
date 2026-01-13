@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="{{ asset('css/programs.css') }}">
 @endpush
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3><i class="bi bi-collection-play"></i> Catálogo de Programas</h3>
+    <h3 class="fw-bold"><i class="bi bi-collection-play"></i> Catálogo de Programas</h3>
     <div>
         <a href="{{ route('schedules.index') }}" class="btn btn-outline-secondary me-2"><i class="bi bi-arrow-left"></i> Voltar para Grade</a>
         <a href="{{ route('programs.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Programa</a>
