@@ -4,7 +4,7 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/vacation.css') }}">
 @endpush
-<div class="card shadow-sm" style="max-width: 800px; margin: auto;">
+<div class="card shadow-sm card-vacations">
     <div class="card-header bg-warning text-dark">
         <h5 class="mb-0">Editar Férias - {{ $vacation->user->name }}</h5>
     </div>

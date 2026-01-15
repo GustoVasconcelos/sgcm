@@ -4,7 +4,7 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/vacation.css') }}">
 @endpush
-<div class="card shadow-sm" style="">
+<div class="card shadow-sm card-vacations">
     <div class="card-header bg-primary text-white">
         <h5 class="mb-0">Cadastrar Férias</h5>
     </div>

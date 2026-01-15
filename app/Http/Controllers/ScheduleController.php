@@ -152,4 +152,103 @@ class ScheduleController extends Controller
 
         return back()->with('success', 'Grade clonada com sucesso do dia ' . $sourceSaturday->format('d/m'));
     }
+
+    public function update(Request $request, Schedule $schedule)
+    {
+        // 1. Validação
+        $request->validate([
+            'date' => 'required|date',
+            'program_id' => 'required|exists:programs,id',
+            'start_time' => 'required',
+            'duration' => 'required|integer|min:1',
+            'custom_info' => 'nullable|string',
+            'notes' => 'nullable|string'
+        ]);
+
+        // 2. Preenche os dados na memória
+        $schedule->fill([
+            'date' => $request->date,
+            'program_id' => $request->program_id,
+            'start_time' => $request->start_time,
+            'duration' => $request->duration,
+            'custom_info' => $request->custom_info,
+            'notes' => $request->notes,
+            'status_mago' => false,
+            'status_verification' => false,
+        ]);
+
+        // 3. Verifica mudanças
+        if ($schedule->isDirty()) {
+            
+            $changes = $schedule->getDirty();
+            $logDetails = [];
+
+            foreach ($changes as $field => $newValue) {
+                $oldValue = $schedule->getOriginal($field);
+
+                // Ignora campos de controle interno
+                if (in_array($field, ['status_mago', 'status_verification'])) continue;
+
+                // TRATAMENTO: Programa
+                if ($field === 'program_id') {
+                    $oldName = Program::find($oldValue)->name ?? 'ID '.$oldValue;
+                    $newName = Program::find($newValue)->name ?? 'ID '.$newValue;
+                    $logDetails['programa'] = "$oldName ➜ $newName";
+                } 
+                // TRATAMENTO: Data
+                elseif ($field === 'date') {
+                    $oldDate = date('d/m', strtotime($oldValue));
+                    $newDate = date('d/m', strtotime($newValue));
+                    // Só loga se a data visualmente mudou
+                    if ($oldDate !== $newDate) {
+                        $logDetails['data'] = "$oldDate ➜ $newDate";
+                    }
+                }
+                // TRATAMENTO NOVO: Horário
+                elseif ($field === 'start_time') {
+                    // Corta os segundos para comparar apenas HH:MM (06:30)
+                    $oldTime = substr($oldValue, 0, 5); 
+                    $newTime = substr($newValue, 0, 5);
+
+                    // Só registra se realmente mudou a hora/minuto
+                    if ($oldTime !== $newTime) {
+                        $logDetails['horario'] = "$oldTime ➜ $newTime";
+                    }
+                }
+                // PADRÃO: Outros campos (Duração, Obs, Blocos)
+                else {
+                    $oldValText = $oldValue ?? 'Vazio';
+                    $newValText = $newValue ?? 'Vazio';
+                    
+                    $labels = [
+                        'duration' => 'duracao',
+                        'custom_info' => 'blocos',
+                        'notes' => 'obs'
+                    ];
+                    $label = $labels[$field] ?? $field;
+
+                    // Verifica se não é apenas uma mudança de nulo para vazio ou vice-versa
+                    if (trim((string)$oldValText) !== trim((string)$newValText)) {
+                        $logDetails[$label] = "$oldValText ➜ $newValText";
+                    }
+                }
+            }
+
+            // Se depois de filtrar tudo, sobrou algo no logDetails, aí sim salvamos
+            if (!empty($logDetails)) {
+                ActionLog::register('PGMs FDS', 'Editar Programa', [
+                    'programa_atual' => $schedule->program->name,
+                    'alteracoes' => $logDetails
+                ]);
+            }
+
+            $schedule->save();
+
+            return redirect()->route('schedules.index', ['date' => $request->date])
+                             ->with('success', 'Programa atualizado com sucesso!');
+        }
+
+        return redirect()->route('schedules.index', ['date' => $request->date])
+                         ->with('info', 'Nenhuma alteração detectada.');
+    }
 }

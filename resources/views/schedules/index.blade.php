@@ -8,11 +8,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="fw-bold"><i class="bi bi-broadcast"></i> Grade Fim de Semana</h3>
-        {{-- <span class="text-muted">
-            {{ $saturday->format('d/m/Y') }} e {{ $sunday->format('d/m/Y') }}
-        </span> --}}
     </div>
-
     <div class="btn-group">
         <a href="{{ route('schedules.index', ['date' => $saturday->copy()->subWeek()->format('Y-m-d')]) }}" class="btn btn-outline-secondary">
             &laquo; Anterior
@@ -22,7 +18,6 @@
             Próximo &raquo;
         </a>
     </div>
-
     <div>
         <a href="{{ route('programs.index') }}" class="btn btn-secondary me-1" title="Gerenciar Lista de Programas">
             <i class="bi bi-list-ul"></i> Programas
@@ -107,6 +102,61 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editScheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Agendamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editScheduleForm" method="POST">
+                @csrf
+                @method('PUT')
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Dia</label>
+                        <select name="date" id="edit_date" class="form-select" required>
+                            <option value="{{ $saturday->format('Y-m-d') }}">Sábado ({{ $saturday->format('d/m') }})</option>
+                            <option value="{{ $sunday->format('Y-m-d') }}">Domingo ({{ $sunday->format('d/m') }})</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Programa</label>
+                        <select name="program_id" id="edit_program_id" class="form-select" required>
+                            @foreach($programs as $p)
+                                <option value="{{ $p->id }}" data-duration="{{ $p->default_duration }}">{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label>Horário</label>
+                            <input type="time" name="start_time" id="edit_start_time" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label>Duração (min)</label>
+                            <input type="number" name="duration" id="edit_duration" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Blocos (ID)</label>
+                        <input type="text" name="custom_info" id="edit_custom_info" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Observações</label>
+                        <textarea name="notes" id="edit_notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Atualizar</button>
                 </div>
             </form>
         </div>
