@@ -83,7 +83,7 @@
                                         {{ $isRetTomorrow ? 'Amanhã' : $dateReturn->format('d/m') }} 
                                         
                                         @if(!$isRetTomorrow)
-                                            <small class="text-muted fw-normal">({{ mb_strtoupper($dateReturn->locale('pt_BR')->shortDayName) }})</small>
+                                            <small>({{ mb_strtoupper($dateReturn->locale('pt_BR')->shortDayName) }})</small>
                                         @endif
                                         
                                         : {{ $returnShift->name }}

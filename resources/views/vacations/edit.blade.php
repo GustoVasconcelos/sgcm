@@ -1,6 +1,9 @@
 @extends('layout')
 
 @section('content')
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/vacation.css') }}">
+@endpush
 <div class="card shadow-sm" style="max-width: 800px; margin: auto;">
     <div class="card-header bg-warning text-dark">
         <h5 class="mb-0">Editar Férias - {{ $vacation->user->name }}</h5>
@@ -13,7 +16,11 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Ano Referência</label>
-                    <input type="number" name="year" class="form-control" value="{{ $vacation->year }}" required>
+                    <select name="year" class="form-select" required>
+                        @foreach($allowedYears as $y)
+                            <option value="{{ $y }}" {{ $vacation->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-8">
                     <label class="form-label fw-bold">Modalidade</label>
