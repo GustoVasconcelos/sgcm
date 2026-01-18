@@ -13,7 +13,7 @@
         <a href="{{ route('schedules.index', ['date' => $saturday->copy()->subWeek()->format('Y-m-d')]) }}" class="btn btn-outline-secondary">
             &laquo; Anterior
         </a>
-        <a href="{{ route('schedules.index') }}" class="btn btn-outline-primary">Atual</a>
+        <a href="{{ route('schedules.index') }}" class="btn btn-outline-primary z-3">Atual</a>
         <a href="{{ route('schedules.index', ['date' => $saturday->copy()->addWeek()->format('Y-m-d')]) }}" class="btn btn-outline-secondary">
             Próximo &raquo;
         </a>

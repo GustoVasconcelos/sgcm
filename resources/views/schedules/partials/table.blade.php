@@ -43,7 +43,7 @@
                     </td>
 
                     <td class="text-start text-danger fw-bold small">
-                        {{ $item->notes ?? 'NÃO TEM' }}
+                        {{ $item->notes ?? ' ' }}
                     </td>
 
                     <td>
