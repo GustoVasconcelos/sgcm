@@ -6,6 +6,7 @@
     <title>Login - SGCM</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
+    <link rel="shortcut icon" href="{{ asset('logotipo-band.ico') }}" >
 </head>
 <body>
 
