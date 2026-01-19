@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br" data-bs-theme="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,7 +43,7 @@
         </form>
     </div>
 
-    </div> <div class="fixed-bottom text-center pb-3">
+    <div class="fixed-bottom text-center pb-3">
         <small class="text-secondary">
             &copy; {{ date('Y') }} SGCM - Sistema Gerenciador do Controle Mestre
             <br>

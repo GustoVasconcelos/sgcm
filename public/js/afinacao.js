@@ -39,7 +39,7 @@
                 <div class="col">
                     <input type="text" class="form-control input-time tuning-input" id="${index}" name="${index}"
                            placeholder="00:00:00" value="${value}"
-                           oninput="formatInput(this)" onfocus="this.select()">
+                           oninput="formatInput(this)" onfocus="this.select()" autocomplete="off">
                 </div>
                 <div class="col-auto" style="min-width: 80px;">
                     <span class="acc-label" hidden>Acumulado</span>
