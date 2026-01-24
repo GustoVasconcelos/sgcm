@@ -1,32 +1,42 @@
-FROM php:8.2-fpm-alpine
+# 1. Escolhe a imagem base (PHP 8.2 + Nginx prontos para Laravel)
+FROM serversideup/php:8.2-fpm-nginx
 
-# Instala dependências do sistema
-RUN apk add --no-cache \
-    libpng-dev \
-    libzip-dev \
-    zip \
+# 2. Vira Root para instalar pacotes do sistema
+USER root
+
+# 3. Instala dependências do sistema
+# (Zip/Unzip para o Composer + Libs gráficas para o DomPDF)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    git \
     unzip \
-    icu-dev \
-    oniguruma-dev \
-    mysql-client
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    gnupg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instala extensões do PHP necessárias para o Laravel
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd intl zip opcache
+# 4. Instala Node.js e NPM (Para compilar os assets do Front-end)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
 
-# Configura o Opcache (Melhora performance em prod)
-RUN echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.interned_strings_buffer=8" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.max_accelerated_files=4000" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.revalidate_freq=2" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.fast_shutdown=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+# 5. Instala extensões do PHP necessárias (GD é vital para o DomPDF)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo_mysql bcmath intl opcache
 
-# Define diretório de trabalho
-WORKDIR /var/www
+# 6. Copia os arquivos do seu projeto para a imagem
+COPY . /var/www/html
 
-# Instala Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# 7. Define o dono dos arquivos (importante para evitar erro de permissão)
+# O usuário padrão dessa imagem é 'webuser' (ID 9999)
+RUN chown -R 9999:9999 /var/www/html
 
-# Cria usuário para evitar rodar como root
-RUN addgroup -g 1000 laravel && adduser -G laravel -g laravel -s /bin/sh -D laravel
+# 8. Troca para o usuário comum para rodar comandos de build
+USER 9999
 
-USER laravel
+# 9. Instala dependências do PHP (Composer)
+RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+# 10. Instala dependências do JS e compila (Vite/Mix)
+RUN npm install && npm run build

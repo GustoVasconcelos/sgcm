@@ -37,8 +37,9 @@ class DashboardController extends Controller
                     $parts = explode(':', $todayShift->name);
                     $startHour = isset($parts[0]) ? intval($parts[0]) : 0;
 
-                    // Se a hora atual for MAIOR ou IGUAL ao início do turno, mostra o PRÓXIMO
-                    if ($now->hour >= $startHour) {
+                    // 1. ($startHour > 0): Se o turno for 00h, essa parte falha, o IF falha, e ele cai no 'else' (Mostra HOJE).
+                    // 2. ($now->hour >= $startHour): Para turnos normais (ex: 14h), funciona como antes (15h > 14h -> mostra próximo).
+                    if ($startHour > 0 && $now->hour >= $startHour) {
                         $showNext = true;
                     } else {
                         // Se ainda não começou (ex: são 08h e turno é 14h), mostra HOJE
