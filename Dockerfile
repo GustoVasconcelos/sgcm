@@ -46,5 +46,6 @@ RUN npm install && npm run build
 # para que o servidor web consiga ler e escrever quando o site estiver no ar.
 RUN chown -R 9999:9999 /var/www/html
 
-# 10. Troca para usuário comum apenas para rodar a aplicação (Segurança)
-USER 9999
+# --- REMOVIDA A LINHA 'USER 9999' ---
+# Deixamos o container iniciar como root para ele configurar o Nginx,
+# a própria imagem fará o "downgrade" para o usuário 9999 depois.
