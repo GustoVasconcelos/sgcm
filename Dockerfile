@@ -1,11 +1,11 @@
-# 1. Escolhe a imagem base (PHP 8.2 + Nginx prontos para Laravel)
+# 1. Escolhe a imagem base
 FROM serversideup/php:8.2-fpm-nginx
 
-# 2. Vira Root para instalar pacotes do sistema
+# 2. Vira Root para instalar pacotes
 USER root
 
 # 3. Instala dependências do sistema
-# (Zip/Unzip para o Composer + Libs gráficas para o DomPDF)
+# ADICIONEI: libicu-dev
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     git \
@@ -13,30 +13,31 @@ RUN apt-get update \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libicu-dev \
     gnupg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. Instala Node.js e NPM (Para compilar os assets do Front-end)
+# 4. Instala Node.js e NPM
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-# 5. Instala extensões do PHP necessárias (GD é vital para o DomPDF)
+# 5. Instala extensões do PHP
+# Agora o 'intl' vai funcionar porque instalamos o libicu-dev acima
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo_mysql bcmath intl opcache
 
-# 6. Copia os arquivos do seu projeto para a imagem
+# 6. Copia os arquivos do projeto
 COPY . /var/www/html
 
-# 7. Define o dono dos arquivos (importante para evitar erro de permissão)
-# O usuário padrão dessa imagem é 'webuser' (ID 9999)
+# 7. Ajusta permissões (Owner: webuser = 9999)
 RUN chown -R 9999:9999 /var/www/html
 
-# 8. Troca para o usuário comum para rodar comandos de build
+# 8. Troca para usuário comum
 USER 9999
 
-# 9. Instala dependências do PHP (Composer)
+# 9. Instala dependências do Composer
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# 10. Instala dependências do JS e compila (Vite/Mix)
+# 10. Compila o Front-end
 RUN npm install && npm run build
