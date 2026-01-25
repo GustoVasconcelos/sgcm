@@ -4,7 +4,7 @@ FROM serversideup/php:8.2-fpm-nginx
 # 2. Vira Root
 USER root
 
-# 3. Instala dependências
+# 3. Instala dependências do sistema
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     git \
@@ -21,11 +21,11 @@ RUN apt-get update \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-# 5. Extensões PHP
+# 5. Instala extensões do PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo_mysql bcmath intl opcache
 
-# 6. Copia arquivos
+# 6. Define diretório e copia arquivos
 WORKDIR /var/www/html
 COPY . .
 
@@ -36,13 +36,19 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # 8. NPM Build
 RUN npm install && npm run build
 
-# 9. Ajusta permissões do Build
+# 9. Passa a posse dos arquivos para o usuário padrão
 RUN chown -R 9999:9999 /var/www/html
 
-# --- O PULO DO GATO (NOVO) ---
-# Criamos um script que roda TODA VEZ que o container inicia.
-# Ele força a pasta storage (que é um volume) a ser do usuário 9999.
-RUN echo '#!/bin/sh' > /etc/entrypoint.d/99-fix-perms.sh && \
-    echo 'chown -R 9999:9999 /var/www/html/storage /var/www/html/bootstrap/cache' >> /etc/entrypoint.d/99-fix-perms.sh && \
-    echo 'chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache' >> /etc/entrypoint.d/99-fix-perms.sh && \
-    chmod +x /etc/entrypoint.d/99-fix-perms.sh
+# --- SCRIPT DE CORREÇÃO (ATUALIZADO) ---
+# Aqui usamos 'printf' para criar um script robusto.
+# 1. Cria as pastas de cache do Laravel se não existirem (essencial para volumes novos)
+# 2. Aplica chmod 777 para garantir que o PHP consiga escrever, não importa o dono do volume.
+RUN printf "#!/bin/sh\n\
+mkdir -p /var/www/html/storage/framework/sessions\n\
+mkdir -p /var/www/html/storage/framework/views\n\
+mkdir -p /var/www/html/storage/framework/cache\n\
+mkdir -p /var/www/html/storage/logs\n\
+mkdir -p /var/www/html/bootstrap/cache\n\
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache\n\
+exec \"\$@\"\n" > /etc/entrypoint.d/99-fix-perms.sh && \
+chmod +x /etc/entrypoint.d/99-fix-perms.sh
