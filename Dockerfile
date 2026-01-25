@@ -1,10 +1,10 @@
 # 1. Escolhe a imagem base
 FROM serversideup/php:8.2-fpm-nginx
 
-# 2. Vira Root para instalar tudo sem bloqueios
+# 2. Vira Root
 USER root
 
-# 3. Instala dependências do sistema
+# 3. Instala dependências
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     git \
@@ -17,35 +17,32 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. Instala Node.js e NPM
+# 4. Instala Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-# 5. Instala extensões do PHP
+# 5. Extensões PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo_mysql bcmath intl opcache
 
-# 6. Define diretório e Copia os arquivos
+# 6. Copia arquivos
 WORKDIR /var/www/html
 COPY . .
 
-# --- MUDANÇA ESTRATÉGICA AQUI ---
-# Rodamos as instalações como ROOT para evitar erro de permissão na pasta cache
-
-# Permite composer rodar como root
+# 7. Composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
-
-# 7. Instala dependências do PHP
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# 8. Instala dependências do JS e compila (Agora o npm tem poder de root)
+# 8. NPM Build
 RUN npm install && npm run build
 
-# 9. O PASSO FINAL IMPORTANTE:
-# Agora que tudo foi criado, passamos a posse dos arquivos para o usuário 'webuser' (9999)
-# para que o servidor web consiga ler e escrever quando o site estiver no ar.
+# 9. Ajusta permissões do Build
 RUN chown -R 9999:9999 /var/www/html
 
-# --- REMOVIDA A LINHA 'USER 9999' ---
-# Deixamos o container iniciar como root para ele configurar o Nginx,
-# a própria imagem fará o "downgrade" para o usuário 9999 depois.
+# --- O PULO DO GATO (NOVO) ---
+# Criamos um script que roda TODA VEZ que o container inicia.
+# Ele força a pasta storage (que é um volume) a ser do usuário 9999.
+RUN echo '#!/bin/sh' > /etc/entrypoint.d/99-fix-perms.sh && \
+    echo 'chown -R 9999:9999 /var/www/html/storage /var/www/html/bootstrap/cache' >> /etc/entrypoint.d/99-fix-perms.sh && \
+    echo 'chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache' >> /etc/entrypoint.d/99-fix-perms.sh && \
+    chmod +x /etc/entrypoint.d/99-fix-perms.sh
