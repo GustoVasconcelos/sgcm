@@ -39,16 +39,15 @@ RUN npm install && npm run build
 # 9. Passa a posse dos arquivos para o usuário padrão
 RUN chown -R 9999:9999 /var/www/html
 
-# --- SCRIPT DE CORREÇÃO (ATUALIZADO) ---
-# Aqui usamos 'printf' para criar um script robusto.
-# 1. Cria as pastas de cache do Laravel se não existirem (essencial para volumes novos)
-# 2. Aplica chmod 777 para garantir que o PHP consiga escrever, não importa o dono do volume.
+# --- SCRIPT DE CORREÇÃO (CORRIGIDO) ---
+# Removemos o 'exec "$@"' e deixamos apenas os comandos de permissão.
+# A imagem vai rodar isso e continuar o boot normalmente.
 RUN printf "#!/bin/sh\n\
 mkdir -p /var/www/html/storage/framework/sessions\n\
 mkdir -p /var/www/html/storage/framework/views\n\
 mkdir -p /var/www/html/storage/framework/cache\n\
 mkdir -p /var/www/html/storage/logs\n\
 mkdir -p /var/www/html/bootstrap/cache\n\
-chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache\n\
-exec \"\$@\"\n" > /etc/entrypoint.d/99-fix-perms.sh && \
+chown -R 9999:9999 /var/www/html/storage /var/www/html/bootstrap/cache\n\
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache\n" > /etc/entrypoint.d/99-fix-perms.sh && \
 chmod +x /etc/entrypoint.d/99-fix-perms.sh
