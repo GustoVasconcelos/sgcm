@@ -39,9 +39,11 @@ RUN npm install && npm run build
 # 9. Passa a posse dos arquivos para o usuário padrão
 RUN chown -R 9999:9999 /var/www/html
 
-# --- SCRIPT DE CORREÇÃO (CORRIGIDO) ---
-# Removemos o 'exec "$@"' e deixamos apenas os comandos de permissão.
-# A imagem vai rodar isso e continuar o boot normalmente.
+# --- SCRIPT DE INICIALIZAÇÃO (AGORA COM MIGRATE) ---
+# Este script roda toda vez que o container liga (Start).
+# 1. Cria pastas.
+# 2. Corrige permissões (777 no storage para evitar dor de cabeça).
+# 3. Roda as migrações do banco automaticamente.
 RUN printf "#!/bin/sh\n\
 mkdir -p /var/www/html/storage/framework/sessions\n\
 mkdir -p /var/www/html/storage/framework/views\n\
@@ -49,5 +51,8 @@ mkdir -p /var/www/html/storage/framework/cache\n\
 mkdir -p /var/www/html/storage/logs\n\
 mkdir -p /var/www/html/bootstrap/cache\n\
 chown -R 9999:9999 /var/www/html/storage /var/www/html/bootstrap/cache\n\
-chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache\n" > /etc/entrypoint.d/99-fix-perms.sh && \
-chmod +x /etc/entrypoint.d/99-fix-perms.sh
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache\n\
+echo '🚀 Rodando Migrations...'\n\
+php artisan migrate --force\n\
+" > /etc/entrypoint.d/99-init-laravel.sh && \
+chmod +x /etc/entrypoint.d/99-init-laravel.sh
