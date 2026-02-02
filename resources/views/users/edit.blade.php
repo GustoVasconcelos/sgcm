@@ -25,14 +25,26 @@
                 <label class="form-label">Confirmar Nova Senha</label>
                 <input type="password" name="password_confirmation" class="form-control">
             </div>
+
+            {{-- SELEÇÃO DE GRUPOS (ROLES) --}}
             <div class="mb-3">
-                <label class="form-label">Perfil</label>
-                <select name="profile" class="form-select" required>
-                    <option value="user" {{ $user->profile == 'user' ? 'selected' : '' }}>Operador</option>
-                    <option value="admin" {{ $user->profile == 'admin' ? 'selected' : '' }}>Administrador</option>
-                    <option value="viewer" {{ $user->profile == 'viewer' ? 'selected' : '' }}>Visualizador</option>
-                </select>
+                <label class="form-label fw-bold">Grupos de Acesso</label>
+                <div class="card p-3 border-0">
+                    @foreach($roles as $role)
+                        <div class="form-check">
+                            {{-- Verifica se o usuário tem esse papel --}}
+                            <input class="form-check-input" type="checkbox" name="roles[]" 
+                                   value="{{ $role->id }}" id="role_{{ $role->id }}"
+                                   {{ $user->hasRole($role->name) ? 'checked' : '' }}>
+                            
+                            <label class="form-check-label" for="role_{{ $role->id }}">
+                                {{ $role->name }}
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
             </div>
+
             <div class="mb-3">
                 <label class="form-label fw-bold d-block">Configuração de Escala</label>
                 <div class="form-check form-switch p-0 m-0">

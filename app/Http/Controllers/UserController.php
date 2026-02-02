@@ -6,20 +6,22 @@ use App\Models\User;
 use App\Models\ActionLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index()
     {
-        // Excluir o "NAO HA" da busca
         $users = User::where('name', '!=', 'NAO HA')
+                     ->with('roles')
                      ->paginate(10);
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('users.create');
+        $roles = Role::all();
+        return view('users.create', compact('roles'));
     }
 
     public function store(Request $request)
@@ -28,7 +30,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'profile' => 'required|in:admin,user,viewer',
+            'roles' => 'required|array',
         ]);
 
         $isOperator = $request->has('is_operator');
@@ -37,14 +39,17 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'profile' => $request->profile,
             'is_operator' => $isOperator,
         ]);
+
+        // Busca os objetos Role pelos IDs enviados no formulário
+        $roles = Role::whereIn('id', $request->roles)->get();
+        $user->syncRoles($roles);
 
         // --- LOG: Criar Usuário ---
         ActionLog::register('Usuários', 'Criar Usuário', [
             'nome_criado' => $user->name,
-            'perfil' => $user->profile,
+            'grupos' => $user->getRoleNames(),
             'participa_escala' => $isOperator ? 'Sim' : 'Não'
         ]);
 
@@ -53,7 +58,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $roles = Role::all();
+        return view('users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user)
@@ -62,14 +68,12 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'profile' => 'required|in:admin,user,viewer',
+            'roles' => 'required|array',
         ]);
 
-        // Prepara os dados para atualização
         $data = [
             'name' => $request->name,
             'email' => $request->email,
-            'profile' => $request->profile,
             'is_operator' => $request->has('is_operator'),
         ];
 
@@ -77,48 +81,52 @@ class UserController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        // Preenche o model com os novos dados (sem salvar ainda) para comparar
         $user->fill($data);
 
-        // --- LOG: Alterar Usuário (Dirty Checking) ---
-        if ($user->isDirty()) {
-            
-            // Pega o que mudou
-            $changes = $user->getDirty();
+        $basicChanges = $user->isDirty();
+        $changes = $user->getDirty();
+        
+        $user->save();
 
-            // TRATAMENTO DE SEGURANÇA E LEGIBILIDADE:
-            
-            // 1. Se a senha mudou, não salva o Hash, salva apenas um aviso
-            if (isset($changes['password'])) {
-                $changes['password'] = '*** Senha Alterada ***';
-            }
+        // --- CORREÇÃO AQUI ---
+        // 1. Pega os nomes atuais
+        $currentRoles = $user->getRoleNames()->toArray();
+        
+        // 2. Transforma os IDs do formulário em NOMES (ex: [1, 2] vira ['Admin', 'Operador'])
+        $newRoles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
+        
+        // 3. Sincroniza usando os NOMES (Agora funciona!)
+        $user->syncRoles($newRoles);
 
-            // 2. Se o status de operador mudou, converte para texto
-            if (isset($changes['is_operator'])) {
-                $changes['is_operator'] = $changes['is_operator'] ? 'Sim' : 'Não';
+        // Lógica de Log
+        $rolesChanged = array_diff($currentRoles, $newRoles) || array_diff($newRoles, $currentRoles);
+
+        if ($basicChanges || $rolesChanged) {
+            
+            if (isset($changes['password'])) $changes['password'] = '*** Senha Alterada ***';
+            if (isset($changes['is_operator'])) $changes['is_operator'] = $changes['is_operator'] ? 'Sim' : 'Não';
+            
+            if ($rolesChanged) {
+                $changes['grupos_anteriores'] = implode(', ', $currentRoles);
+                $changes['grupos_novos'] = implode(', ', $newRoles);
             }
 
             ActionLog::register('Usuários', 'Alterar Usuário', [
-                'usuario_alvo' => $user->name, // Nome atual (ou novo se tiver mudado)
+                'usuario_alvo' => $user->name,
                 'campos_alterados' => $changes
             ]);
-
-            $user->save(); // Salva efetivamente
             
             return redirect()->route('users.index')->with('success', 'Usuário atualizado com sucesso!');
         }
 
-        // Se não houve mudança, apenas redireciona
         return redirect()->route('users.index')->with('info', 'Nenhuma alteração realizada.');
     }
 
     public function destroy(User $user)
     {
-        // --- LOG: Excluir Usuário (Captura antes de deletar) ---
         ActionLog::register('Usuários', 'Excluir Usuário', [
             'usuario_excluido' => $user->name,
-            'email' => $user->email,
-            'perfil' => $user->profile,
+            'grupos' => $user->getRoleNames(),
             'participava_escala' => $user->is_operator ? 'Sim' : 'Não'
         ]);
 

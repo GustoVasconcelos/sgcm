@@ -31,41 +31,49 @@
                         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Início</a>
                     </li>
 
-                    {{-- 2. ITENS EXCLUSIVOS DE OPERADORES --}}
-                    @if(Auth::user()->is_operator)
+                    {{-- 2. AFINAÇÃO (Permissão: usar_afinacao) --}}
+                    @can('usar_afinacao')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('tools.afinacao') ? 'active' : '' }}" href="{{ route('tools.afinacao') }}">Afinação</a>
                         </li>
-                    @endif
+                    @endcan
 
-                    {{-- 3. REGRESSIVA (Link Dinâmico: Controle vs Visualização) --}}
-                    <li class="nav-item">
-                        @php
-                            // Se for Viewer vai pra tela preta, senão vai pro controle
-                            $timerRoute = (Auth::user()->profile === 'viewer') ? route('timers.viewer') : route('timers.operator');
-                        @endphp
-                        <a class="nav-link {{ request()->routeIs('timers.*') ? 'active' : '' }}" href="{{ $timerRoute }}">
-                            Regressiva
-                        </a>
-                    </li>
+                    {{-- 3. REGRESSIVA (Permissão: ver_regressiva) --}}
+                    @can('ver_regressiva')
+                        <li class="nav-item">
+                            @php
+                                // Verifica Role para definir destino
+                                $timerRoute = Auth::user()->hasRole('Viewer') ? route('timers.viewer') : route('timers.operator');
+                            @endphp
+                            <a class="nav-link {{ request()->routeIs('timers.*') ? 'active' : '' }}" href="{{ $timerRoute }}">
+                                Regressiva
+                            </a>
+                        </li>
+                    @endcan
 
-                    {{-- 4. MAIS ITENS EXCLUSIVOS DE OPERADORES --}}
-                    @if(Auth::user()->is_operator)
+                    {{-- 4. ESCALAS E OPERACIONAL (Permissão: ver_escalas) --}}
+                    @can('ver_escalas')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('scales.*') ? 'active' : '' }}" href="{{ route('scales.index') }}">Escalas</a>
                         </li>
+                    @endcan
+                    
+                    @can('ver_pgm_fds')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}" href="{{ route('schedules.index') }}">PGMs FDS</a>
                         </li>
+                    @endcan
+
+                    @can('ver_ferias')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('vacations.*') ? 'active' : '' }}" href="{{ route('vacations.index') }}">Férias</a>
                         </li>
-                    @endif
+                    @endcan
 
-                    {{-- 5. ADMINISTRAÇÃO (Apenas Admin) --}}
-                    @if(Auth::user()->profile === 'admin')
+                    {{-- 5. ADMINISTRAÇÃO (Role: Admin) --}}
+                    @role('Admin')
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') || request()->routeIs('users.*') || request()->routeIs('roles.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown">
                                 Administração
                             </a>
                             <ul class="dropdown-menu">
@@ -73,10 +81,14 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('users.index') }}">Gerenciar Usuários</a></li>
                                 <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('roles.index') }}">Gerenciar Grupos</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('logs.index') }}">Visualizar Logs</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('logs.settings.index') }}">Configurações</a></li>
                             </ul>
                         </li>
-                    @endif
+                    @endrole
                 </ul>
                 
                 <ul class="navbar-nav ms-auto">
@@ -85,6 +97,10 @@
                             <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            {{-- Exibe os cargos do usuário como informação --}}
+                            <li><h6 class="dropdown-header">Perfil: {{ Auth::user()->getRoleNames()->join(', ') }}</h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            
                             <li>
                                 <a class="dropdown-item" href="{{ route('profile.edit') }}">
                                     Minha Conta
@@ -107,7 +123,6 @@
     </nav>
 
     <div class="container mt-4 flex-grow-1">
-        {{-- ÁREA DE MENSAGENS E ALERTAS --}}
         @if ($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <strong><i class="bi bi-exclamation-triangle-fill"></i> Ops! Verifique os erros abaixo:</strong>

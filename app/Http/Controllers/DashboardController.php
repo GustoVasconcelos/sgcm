@@ -11,23 +11,23 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user(); // Pega o usuário logado para facilitar
-        $displayShift = null; // O turno principal que será exibido (Card Grande)
-        $returnShift = null;  // O turno de retorno (Só preenchido se o principal for Folga)
+        $user = Auth::user();
+        $displayShift = null;
+        $returnShift = null;
         
-        // --- 1. LÓGICA DE ESCALAS (MANTIDA ORIGINAL) ---
-        if ($user->is_operator) {
+        // --- 1. LÓGICA DE ESCALAS ---
+        // Verifica se o usuário tem a permissão de ver escalas (definida no Seeder)
+        // ou se ele participa da escala (is_operator no banco ainda existe para fins de lógica de turno)
+        if ($user->is_operator && $user->can('ver_escalas')) {
             $now = Carbon::now();
             $today = Carbon::today();
 
-            // Pega o turno de HOJE
             $todayShift = ScaleShift::where('user_id', $user->id)
                 ->whereDate('date', $today)
                 ->first();
 
             $showNext = false;
 
-            // Análise Temporal: Devemos mostrar o próximo?
             if ($todayShift) {
                 if ($todayShift->name === 'FOLGA') {
                     $displayShift = $todayShift;
@@ -46,7 +46,6 @@ class DashboardController extends Controller
                 $showNext = true;
             }
 
-            // Busca o Próximo Turno
             if ($showNext) {
                 $displayShift = ScaleShift::where('user_id', $user->id)
                     ->whereDate('date', '>', $today)
@@ -55,7 +54,6 @@ class DashboardController extends Controller
                     ->first();
             }
 
-            // Lógica da Folga
             if ($displayShift && $displayShift->name === 'FOLGA') {
                 $returnShift = ScaleShift::where('user_id', $user->id)
                     ->whereDate('date', '>', $displayShift->date)
@@ -66,7 +64,7 @@ class DashboardController extends Controller
             }
         }
 
-        // --- 2. LÓGICA DOS CARDS (NOVA) ---
+        // --- 2. LÓGICA DOS CARDS (COM PERMISSÕES SPATIE) ---
         $menuItems = [
             [
                 'title'   => 'Afinação',
@@ -74,15 +72,16 @@ class DashboardController extends Controller
                 'icon'    => 'bi-mic',
                 'color'   => 'text-warning',
                 'route'   => route('tools.afinacao'),
-                'visible' => $user->is_operator
+                'visible' => $user->can('usar_afinacao') // Verifica permissão
             ],
             [
                 'title'   => 'Regressiva',
-                'desc'    => ($user->profile === 'viewer') ? 'Visualizar regressiva.' : 'Controle de tempo e regressiva.',
+                'desc'    => $user->hasRole('Viewer') ? 'Visualizar tela de estúdio.' : 'Controle de tempo e regressiva.',
                 'icon'    => 'bi-stopwatch',
                 'color'   => 'text-primary',
-                'route'   => ($user->profile === 'viewer') ? route('timers.viewer') : route('timers.operator'),
-                'visible' => true // Todos acessam
+                // Se for Viewer vai pro viewer, se tiver permissão de operar vai pro operator
+                'route'   => $user->hasRole('Viewer') ? route('timers.viewer') : route('timers.operator'),
+                'visible' => $user->can('ver_regressiva') // Todos os grupos têm essa permissão
             ],
             [
                 'title'   => 'Escalas',
@@ -90,7 +89,7 @@ class DashboardController extends Controller
                 'icon'    => 'bi-calendar-range',
                 'color'   => 'text-info',
                 'route'   => route('scales.index'),
-                'visible' => $user->is_operator
+                'visible' => $user->can('ver_escalas')
             ],
             [
                 'title'   => 'PGMs FDS',
@@ -98,7 +97,7 @@ class DashboardController extends Controller
                 'icon'    => 'bi-broadcast',
                 'color'   => 'text-success',
                 'route'   => route('schedules.index'),
-                'visible' => $user->is_operator
+                'visible' => $user->can('ver_pgm_fds')
             ],
             [
                 'title'   => 'Férias',
@@ -106,18 +105,28 @@ class DashboardController extends Controller
                 'icon'    => 'bi-airplane',
                 'color'   => 'text-danger',
                 'route'   => route('vacations.index'),
-                'visible' => $user->is_operator
+                'visible' => $user->can('ver_ferias')
             ],
             // -- ÁREA ADMINISTRATIVA --
             [
-                'title'    => 'Gerenciar Equipe',
+                'title'    => 'Gerenciar Usuários',
                 'desc'     => 'Cadastro e controle de usuários.',
-                'icon'     => 'bi-people-fill',
+                'icon'     => 'bi-person-fill',
                 'color'    => 'text-white',
                 'route'    => route('users.index'),
                 'badge'    => 'Admin',
                 'bg_class' => 'bg-dark border-secondary',
-                'visible'  => $user->profile === 'admin'
+                'visible'  => $user->hasRole('Admin')
+            ],
+            [
+                'title'    => 'Gerenciar Grupos',
+                'desc'     => 'Cadastro e controle de grupos.',
+                'icon'     => 'bi-people-fill',
+                'color'    => 'text-white',
+                'route'    => route('roles.index'),
+                'badge'    => 'Admin',
+                'bg_class' => 'bg-dark border-secondary',
+                'visible'  => $user->hasRole('Admin')
             ],
             [
                 'title'    => 'Visualizar Logs',
@@ -127,24 +136,13 @@ class DashboardController extends Controller
                 'route'    => route('logs.index'),
                 'badge'    => 'Admin',
                 'bg_class' => 'bg-dark border-secondary',
-                'visible'  => $user->profile === 'admin'
-            ],
-            [
-                'title'    => 'Configurações',
-                'desc'     => 'Definir configurações do sistema.',
-                'icon'     => 'bi-gear-fill',
-                'color'    => 'text-white',
-                'route'    => route('logs.settings.index'),
-                'badge'    => 'Admin',
-                'bg_class' => 'bg-dark border-secondary',
-                'visible'  => $user->profile === 'admin'
+                'visible'  => $user->hasRole('Admin')
             ],
         ];
 
-        // Filtra apenas os cards visíveis para este usuário
+        // Filtra apenas os cards visíveis
         $cards = array_filter($menuItems, fn($item) => $item['visible']);
 
-        // Retorna tudo para a View
         return view('dashboard', compact('displayShift', 'returnShift', 'cards'));
     }
 }

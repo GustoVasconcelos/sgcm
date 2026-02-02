@@ -24,14 +24,23 @@
                 <label class="form-label">Confirmar Senha</label>
                 <input type="password" name="password_confirmation" class="form-control" required>
             </div>
+            
+            {{-- SELEÇÃO DE GRUPOS (ROLES) --}}
             <div class="mb-3">
-                <label class="form-label">Perfil</label>
-                <select name="profile" class="form-select" required>
-                    <option value="user">Operador</option>
-                    <option value="admin">Administrador</option>
-                    <option value="viewer">Visualizador</option>
-                </select>
+                <label class="form-label fw-bold">Grupos de Acesso</label>
+                <div class="card p-3 bg-light border-0">
+                    @foreach($roles as $role)
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="roles[]" value="{{ $role->id }}" id="role_{{ $role->id }}">
+                            <label class="form-check-label" for="role_{{ $role->id }}">
+                                {{ $role->name }}
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="form-text">Selecione pelo menos um grupo.</div>
             </div>
+
             <div class="mb-3">
                 <label class="form-label fw-bold d-block">Configuração de Escala</label>
                 <div class="form-check form-switch p-0 m-0">

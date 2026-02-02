@@ -9,7 +9,7 @@
 
         <div class="col-md-4 text-center my-3 my-md-0">
             <div class="d-inline-block bg-dark border border-secondary border-opacity-50 rounded px-4 py-1 shadow-sm">
-                {{-- <small class="d-block text-secondary fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">HORA CERTA (SERVIDOR)</small> --}}
+                <small class="d-block text-secondary fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">HORA SERVIDOR</small>
                 <div id="serverClock" class="fs-4 fw-bold font-monospace text-info">--:--:--</div>
             </div>
         </div>
