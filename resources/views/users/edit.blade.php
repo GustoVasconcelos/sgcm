@@ -30,6 +30,7 @@
                 <select name="profile" class="form-select" required>
                     <option value="user" {{ $user->profile == 'user' ? 'selected' : '' }}>Operador</option>
                     <option value="admin" {{ $user->profile == 'admin' ? 'selected' : '' }}>Administrador</option>
+                    <option value="viewer" {{ $user->profile == 'viewer' ? 'selected' : '' }}>Visualizador</option>
                 </select>
             </div>
             <div class="mb-3">

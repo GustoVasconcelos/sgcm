@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\LogSettingsController; 
+use App\Http\Controllers\StudioTimerController;
 use Illuminate\Support\Facades\Route;
 
 // --- Rotas Públicas ---
@@ -64,6 +65,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/afinacao', function () {
         return view('tools.afinacao');
     })->name('tools.afinacao');
+
+    // Rotas para os Timers
+    Route::prefix('timers')->group(function () {
+        Route::get('/operator', [StudioTimerController::class, 'operator'])->name('timers.operator');
+        Route::get('/viewer', [StudioTimerController::class, 'viewer'])->name('timers.viewer');
+        Route::get('/status', [StudioTimerController::class, 'status']); // API de sync
+        Route::post('/update-regressive', [StudioTimerController::class, 'updateRegressive']);
+        Route::post('/update-stopwatch', [StudioTimerController::class, 'updateStopwatch']);
+        Route::post('/update-bk', [StudioTimerController::class, 'updateBk']);
+    });
 
     // Rota API para logs do Javascript
     Route::post('/log/register', function (\Illuminate\Http\Request $request) {

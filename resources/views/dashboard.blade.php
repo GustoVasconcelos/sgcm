@@ -61,7 +61,7 @@
                                 @endif
 
                                 @if(!$isFolga)
-                                    <i class="bi bi-arrow-right-short text-muted mx-2"></i> 
+                                    <i class="bi bi-arrow-right-short {{ $textClass }} mx-2"></i> 
                                     {{ $displayShift->name }}
                                 @else
                                     <span class="text-success ms-2">- FOLGA</span>
@@ -77,7 +77,7 @@
                                 
                                 <div class="d-flex flex-column align-items-center">
                                     <p class="mb-1 small text-muted text-uppercase fw-bold">
-                                        <i class="bi bi-arrow-return-right"></i> <span class="{{ $textClass }}">Retorno ao trabalho</span>
+                                        <i class="bi bi-arrow-return-right {{ $textClass }}"></i> <span class="{{ $textClass }}">Retorno ao trabalho</span>
                                     </p>
                                     <span class="fs-5 {{ $textClass }} fw-semibold">
                                         {{ $isRetTomorrow ? 'Amanhã' : $dateReturn->format('d/m') }} 
@@ -113,105 +113,26 @@
     @endif
     
     <div class="row g-4">
-        
-        <div class="col-md-6 col-lg-3">
-            <a href="{{ route('tools.afinacao') }}" class="text-decoration-none"> <div class="card h-100 bg-secondary bg-opacity-10 border-0 shadow-sm hover-card">
-                    <div class="card-body text-center py-4">
-                        <div class="icon-box mb-3 text-warning">
-                            <i class="bi bi-mic fs-1"></i>
+        @foreach($cards as $card)
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ $card['route'] }}" class="text-decoration-none"> 
+                    {{-- Usa classe padrão se não tiver uma específica (bg_class) --}}
+                    <div class="card h-100 {{ $card['bg_class'] ?? 'bg-secondary bg-opacity-10 border-0' }} shadow-sm hover-card">
+                        <div class="card-body text-center py-4">
+                            <div class="icon-box mb-3 {{ $card['color'] }}">
+                                <i class="bi {{ $card['icon'] }} fs-1"></i>
+                            </div>
+                            <h5 class="card-title">{{ $card['title'] }}</h5>
+                            <p class="card-text small text-white-50">{{ $card['desc'] }}</p>
+                            
+                            @if(isset($card['badge']))
+                                <span class="badge bg-danger">{{ $card['badge'] }}</span>
+                            @endif
                         </div>
-                        <h5 class="card-title">Afinação</h5>
-                        <p class="card-text small text-50">Afinação do jornal.</p>
                     </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <a href="{{ route('scales.index') }}" class="text-decoration-none">
-                <div class="card h-100 bg-secondary bg-opacity-10 border-0 shadow-sm hover-card ">
-                    <div class="card-body text-center py-4">
-                        <div class="icon-box mb-3 text-info">
-                            <i class="bi bi-calendar-range fs-1"></i>
-                        </div>
-                        <h5 class="card-title">Escalas</h5>
-                        <p class="card-text small text-50">Visualize ou edite os horarios de trabalho.</p>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <a href="{{ route('schedules.index') }}" class="text-decoration-none"> <div class="card h-100 bg-secondary bg-opacity-10 border-0 shadow-sm hover-card ">
-                    <div class="card-body text-center py-4">
-                        <div class="icon-box mb-3 text-success">
-                            <i class="bi bi-broadcast fs-1"></i>
-                        </div>
-                        <h5 class="card-title">PGMs FDS</h5>
-                        <p class="card-text small text-50">Controle dos programas locais do fim de semana.</p>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <a href="{{ route('vacations.index') }}" class="text-decoration-none"> <div class="card h-100 bg-secondary bg-opacity-10 border-0 shadow-sm hover-card ">
-                    <div class="card-body text-center py-4">
-                        <div class="icon-box mb-3 text-danger">
-                            <i class="bi bi-airplane fs-1"></i>
-                        </div>
-                        <h5 class="card-title">Férias</h5>
-                        <p class="card-text small text-50">Cadastro e consulta de férias.</p>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        @if(Auth::user()->profile == 'admin')
-        <div class="col-md-6 col-lg-3">
-            <a href="{{ route('users.index') }}" class="text-decoration-none"> <div class="card h-100 bg-dark border-secondary shadow-sm hover-card ">
-                    <div class="card-body text-center py-4">
-                        <div class="icon-box mb-3 text-white">
-                            <i class="bi bi-people-fill fs-1"></i>
-                        </div>
-                        <h5 class="card-title">Gerenciar Equipe</h5>
-                        <p class="card-text small text-50">Cadastro e controle de usuários.</p>
-                        <span class="badge bg-danger">Admin</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <a href="{{ route('logs.index') }}" class="text-decoration-none"> <div class="card h-100 bg-dark border-secondary shadow-sm hover-card ">
-                    <div class="card-body text-center py-4">
-                        <div class="icon-box mb-3 text-white">
-                            <i class="bi bi-activity fs-1"></i>
-                        </div>
-                        <h5 class="card-title">Visualizar Logs</h5>
-                        <p class="card-text small text-50">Cadastro e controle de usuários.</p>
-                        <span class="badge bg-danger">Admin</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-6 col-lg-3">
-            <a href="{{ route('logs.settings.index') }}" class="text-decoration-none"> 
-                <div class="card h-100 bg-dark border-secondary shadow-sm hover-card">
-                    <div class="card-body text-center py-4">
-                        <div class="icon-box mb-3 text-white">
-                            <i class="bi bi-gear-fill fs-1"></i>
-                        </div>
-                        <h5 class="card-title">Configurações</h5>
-                        <p class="card-text small text-white-50">Definir configurações do sistema.</p>
-                        <span class="badge bg-danger">Admin</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-        @endif
-
+                </a>
+            </div>
+        @endforeach
     </div>
 </div>
 

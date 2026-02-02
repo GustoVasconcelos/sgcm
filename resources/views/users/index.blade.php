@@ -35,6 +35,8 @@
                     <td>
                         @if($user->profile === 'admin')
                             <span class="badge bg-danger">Administrador</span>
+                        @elseif($user->profile === 'viewer')
+                            <span class="badge bg-info">Visualizador</span>
                         @else
                             <span class="badge bg-secondary">Operador</span>
                         @endif

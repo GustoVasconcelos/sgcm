@@ -18,7 +18,6 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('dashboard') }}">
                 <img src="{{ asset('logotipo-band.webp') }}" alt="Logo" height="30" class="d-inline-block align-text-top">
-                
                 <span class="fw-bold">SGCM</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -27,21 +26,43 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    {{-- 1. INÍCIO (Todos vêem) --}}
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Início</a>
                     </li>
+
+                    {{-- 2. ITENS EXCLUSIVOS DE OPERADORES --}}
+                    @if(Auth::user()->is_operator)
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('tools.afinacao') ? 'active' : '' }}" href="{{ route('tools.afinacao') }}">Afinação</a>
+                        </li>
+                    @endif
+
+                    {{-- 3. REGRESSIVA (Link Dinâmico: Controle vs Visualização) --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('tools.afinacao') ? 'active' : '' }}" href="{{ route('tools.afinacao') }}">Afinação</a>
+                        @php
+                            // Se for Viewer vai pra tela preta, senão vai pro controle
+                            $timerRoute = (Auth::user()->profile === 'viewer') ? route('timers.viewer') : route('timers.operator');
+                        @endphp
+                        <a class="nav-link {{ request()->routeIs('timers.*') ? 'active' : '' }}" href="{{ $timerRoute }}">
+                            Regressiva
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('scales.*') ? 'active' : '' }}" href="{{ route('scales.index') }}">Escalas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}" href="{{ route('schedules.index') }}">PGMs FDS</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('vacations.*') ? 'active' : '' }}" href="{{ route('vacations.index') }}">Férias</a>
-                    </li>
+
+                    {{-- 4. MAIS ITENS EXCLUSIVOS DE OPERADORES --}}
+                    @if(Auth::user()->is_operator)
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('scales.*') ? 'active' : '' }}" href="{{ route('scales.index') }}">Escalas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}" href="{{ route('schedules.index') }}">PGMs FDS</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('vacations.*') ? 'active' : '' }}" href="{{ route('vacations.index') }}">Férias</a>
+                        </li>
+                    @endif
+
+                    {{-- 5. ADMINISTRAÇÃO (Apenas Admin) --}}
                     @if(Auth::user()->profile === 'admin')
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown">
@@ -86,6 +107,7 @@
     </nav>
 
     <div class="container mt-4 flex-grow-1">
+        {{-- ÁREA DE MENSAGENS E ALERTAS --}}
         @if ($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <strong><i class="bi bi-exclamation-triangle-fill"></i> Ops! Verifique os erros abaixo:</strong>

@@ -28,7 +28,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'profile' => 'required|in:admin,user',
+            'profile' => 'required|in:admin,user,viewer',
         ]);
 
         $isOperator = $request->has('is_operator');
@@ -62,7 +62,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'profile' => 'required|in:admin,user',
+            'profile' => 'required|in:admin,user,viewer',
         ]);
 
         // Prepara os dados para atualização

@@ -29,6 +29,7 @@
                 <select name="profile" class="form-select" required>
                     <option value="user">Operador</option>
                     <option value="admin">Administrador</option>
+                    <option value="viewer">Visualizador</option>
                 </select>
             </div>
             <div class="mb-3">
