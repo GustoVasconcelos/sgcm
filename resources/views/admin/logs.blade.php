@@ -1,11 +1,12 @@
 @extends('layout')
 
 @section('content')
-<div class="card shadow-sm">
-    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-activity"></i> Logs de Atividades</h5>
+<div class="row mb-3">
+    <div class="col">
+        <h3 class="mb-0 fw-bold"><i class="bi bi-activity"></i> Logs de Atividades</h3>
     </div>
-    
+</div>
+<div class="card shadow-sm">
     <div class="card-body">
         <form action="{{ route('logs.index') }}" method="GET" class="row g-3 mb-4 border-bottom pb-4">
             <div class="col-md-3">

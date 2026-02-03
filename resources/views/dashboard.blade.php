@@ -101,7 +101,7 @@
                     <div class="card-body p-4 text-center">
                         <h3 class="fs-4 fw-bold mb-0 text-muted">Sem escalas futuras</h3>
                         <p class="mb-3 small text-muted">Não há turnos cadastrados para você.</p>
-                        <a href="{{ route('scales.index') }}" class="btn {{ $btnClass }} rounded-pill btn-sm">
+                        <a href="{{ route('scales.index') }}" class="btn btn-secondary rounded-pill btn-sm">
                             Verificar Escala
                         </a>
                     </div>

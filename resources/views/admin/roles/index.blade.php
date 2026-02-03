@@ -2,14 +2,14 @@
 
 @section('content')
 <div class="row mb-3">
-    <div class="col-12">
-        <h3 class="mb-0 fw-bold"><i class="bi bi-shield-lock"></i> Gerenciar Grupos de Acesso</h3>
+    <div class="col">
+        <h3 class="mb-0 fw-bold"><i class="bi bi-people-fill"></i> Gerenciar Grupos de Acesso</h3>
+    </div>
+    <div class="col text-end">
+        <a href="{{ route('roles.create') }}" class="btn btn-primary btn-sm">Novo Grupo</a>
     </div>
 </div>
 <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-end align-items-center bg-dark text-white">
-        <a href="{{ route('roles.create') }}" class="btn btn-primary btn-sm">Novo Grupo</a>
-    </div>
     <div class="card-body">
         <table class="table table-hover align-middle">
             <thead>
