@@ -112,6 +112,8 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
 
     Route::resource('roles', \App\Http\Controllers\RoleController::class);
 
+    Route::resource('permissions', \App\Http\Controllers\PermissionController::class);
+
     Route::get('/logs', [\App\Http\Controllers\LogController::class, 'index'])->name('logs.index');
 
     Route::prefix('settings')->name('logs.settings.')->group(function () {

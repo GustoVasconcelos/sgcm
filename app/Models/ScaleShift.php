@@ -12,8 +12,4 @@ class ScaleShift extends Model
     public function user() {
         return $this->belongsTo(User::class);
     }
-    
-    public function scale() {
-        return $this->belongsTo(Scale::class);
-    }
 }

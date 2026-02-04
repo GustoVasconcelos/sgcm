@@ -76,12 +76,13 @@
                         <i class="bi bi-chevron-right text-muted"></i>
                     </a>
                     
-                    <a href="{{ route('logs.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                    <a href="{{ route('permissions.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 text-danger mt-2">
                         <div>
-                            <i class="bi bi-journal-text text-warning fs-5 me-2"></i> Logs do Sistema
-                            <div class="small text-muted ms-4 ps-1">Auditoria de ações realizadas.</div>
+                            <i class="bi bi-code-slash fs-6 me-2"></i> 
+                            <span class="small fw-bold text-uppercase">Catálogo de Permissões (Dev)</span>
+                            <div class="small text-muted ms-4 ps-1">Regras usadas no backend.</div>
                         </div>
-                        <i class="bi bi-chevron-right text-muted"></i>
+                        <i class="bi bi-chevron-right small"></i>
                     </a>
                 </div>
             </div>
@@ -99,6 +100,14 @@
                         <div>
                             <i class="bi bi-collection-play text-success fs-5 me-2"></i> Catálogo de Programas
                             <div class="small text-muted ms-4 ps-1">Adicionar ou remover atrações.</div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </a>
+
+                    <a href="{{ route('logs.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <i class="bi bi-journal-text text-warning fs-5 me-2"></i> Logs do Sistema
+                            <div class="small text-muted ms-4 ps-1">Auditoria de ações realizadas.</div>
                         </div>
                         <i class="bi bi-chevron-right text-muted"></i>
                     </a>
