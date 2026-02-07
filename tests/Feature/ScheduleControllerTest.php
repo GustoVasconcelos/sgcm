@@ -122,7 +122,7 @@ class ScheduleControllerTest extends TestCase
                          ->delete(route('schedules.destroy', $schedule));
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('schedules', ['id' => $schedule->id]);
+        $this->assertSoftDeleted('schedules', ['id' => $schedule->id]);
     }
 
     public function test_can_toggle_mago_status(): void

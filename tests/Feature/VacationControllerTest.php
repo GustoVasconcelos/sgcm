@@ -177,7 +177,7 @@ class VacationControllerTest extends TestCase
                          ->delete(route('vacations.destroy', $vacation));
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('vacations', ['id' => $vacation->id]);
+        $this->assertSoftDeleted('vacations', ['id' => $vacation->id]);
     }
 
     public function test_user_cannot_delete_other_user_vacation(): void

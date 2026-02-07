@@ -209,11 +209,12 @@ class ScaleServiceTest extends TestCase
 
         $this->service->resetDay('2026-02-01', '6h');
 
-        // Não deve ter "Turno Antigo" mais
-        $this->assertDatabaseMissing('scale_shifts', ['name' => 'Turno Antigo']);
-        $this->assertDatabaseMissing('scale_shifts', ['name' => 'Outro Turno']);
+        // Com SoftDeletes, os turnos antigos ficam marcados como deletados
+        // Verifica que os turnos antigos foram soft deleted
+        $this->assertSoftDeleted('scale_shifts', ['name' => 'Turno Antigo']);
+        $this->assertSoftDeleted('scale_shifts', ['name' => 'Outro Turno']);
 
-        // Deve ter os novos turnos
+        // Deve ter os novos turnos (5 não deletados)
         $this->assertEquals(5, ScaleShift::where('date', '2026-02-01')->count());
     }
 }
