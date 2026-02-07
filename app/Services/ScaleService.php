@@ -39,13 +39,7 @@ class ScaleService
             } else {
                 // Gera estrutura vazia na memória se não existir
                 $fakeShifts = collect([]);
-                $defaults = [
-                    ['name' => '06:00 - 12:00', 'order' => 1],
-                    ['name' => '12:00 - 18:00', 'order' => 2],
-                    ['name' => '18:00 - 00:00', 'order' => 3],
-                    ['name' => '00:00 - 06:00', 'order' => 4],
-                    ['name' => 'FOLGA',         'order' => 5],
-                ];
+                $defaults = config('scale.shifts_6h');
 
                 foreach ($defaults as $def) {
                     $fakeShift = new ScaleShift([
@@ -67,12 +61,11 @@ class ScaleService
         // 3. Busca Operadores Formatados
         $users = $this->getOperators();
 
-        // 4. Adiciona o "NÃO HÁ" (Necessário para edição e visualização)
-        $userNaoHa = User::where('name', 'NÃO HÁ')->first();
+        // 4. Adiciona o placeholder (Necessário para edição e visualização)
+        $placeholderName = config('scale.placeholder_user');
+        $userNaoHa = User::where('name', $placeholderName)->first();
         if ($userNaoHa) {
-            // Clonamos ou ajustamos para garantir que apareça certo
-            $userNaoHa->display_name = 'NÃO HÁ';
-            // Se já não estiver na lista (getOperators filtra 'NÃO HÁ')
+            $userNaoHa->display_name = $placeholderName;
             $users->push($userNaoHa);
         }
 
@@ -87,9 +80,9 @@ class ScaleService
      */
     public function getOperators(): Collection
     {
-        // 1. Busca quem é operador e não é o usuário "dummy"
+        // 1. Busca quem é operador e não é o usuário placeholder
         $users = User::where('is_operator', true) 
-            ->where('name', '!=', 'NÃO HÁ') 
+            ->where('name', '!=', config('scale.placeholder_user')) 
             ->orderBy('name')
             ->get();
 
@@ -154,20 +147,9 @@ class ScaleService
     {
         ScaleShift::where('date', $date)->delete();
 
-        $newShifts = ($mode == '8h') ? 
-            [
-                ['name' => '06:00 - 14:00', 'order' => 1],
-                ['name' => '14:00 - 22:00', 'order' => 2],
-                ['name' => '22:00 - 06:00', 'order' => 3],
-                ['name' => 'FOLGA',         'order' => 4],
-            ] : 
-            [
-                ['name' => '06:00 - 12:00', 'order' => 1],
-                ['name' => '12:00 - 18:00', 'order' => 2],
-                ['name' => '18:00 - 00:00', 'order' => 3],
-                ['name' => '00:00 - 06:00', 'order' => 4],
-                ['name' => 'FOLGA',         'order' => 5],
-            ];
+        $newShifts = ($mode == '8h') 
+            ? config('scale.shifts_8h') 
+            : config('scale.shifts_6h');
 
         foreach ($newShifts as $shift) {
             ScaleShift::create([

@@ -24,10 +24,11 @@ class ScaleAutoGenerator
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
         
-        // 1. Validação dos 5 Operadores
+        // 1. Validação do número de operadores
+        $requiredOperators = config('scale.required_operators');
         $allOperators = $this->scaleService->getOperators()->pluck('id')->toArray();
-        if (count($allOperators) !== 5) {
-            throw new \Exception('A geração automática exige EXATAMENTE 5 operadores ativos.');
+        if (count($allOperators) !== $requiredOperators) {
+            throw new \Exception("A geração automática exige EXATAMENTE {$requiredOperators} operadores ativos.");
         }
 
         $current = $start->copy();
@@ -145,13 +146,9 @@ class ScaleAutoGenerator
 
     private function saveRotation($dateStr, $rotation)
     {
-        $names = [
-            1 => '06:00 - 12:00',
-            2 => '12:00 - 18:00',
-            3 => '18:00 - 00:00',
-            4 => '00:00 - 06:00',
-            5 => 'FOLGA'
-        ];
+        // Monta mapa order => name a partir da config
+        $shifts = config('scale.shifts_6h');
+        $names = collect($shifts)->pluck('name', 'order')->toArray();
 
         foreach ($rotation as $order => $userId) {
             if ($userId) {

@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Vacation;
 use App\Models\ActionLog;
+use App\Http\Requests\StoreVacationRequest;
+use App\Http\Requests\UpdateVacationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
-use Carbon\Carbon;
 
 class VacationController extends Controller
 {
@@ -23,43 +23,22 @@ class VacationController extends Controller
             ->get();
 
         $currentYear = date('Y');
-        $years = range($currentYear + 1, $currentYear - 5);
+        $years = range($currentYear + 1, $currentYear - 2);
 
         return view('vacations.index', compact('vacations', 'year', 'years'));
     }
 
     public function create()
     {
-        // Gera lista de anos permitidos (Ano Atual + 2 anos para frente)
         $currentYear = date('Y');
         $allowedYears = range($currentYear, $currentYear + 2);
 
         return view('vacations.create', compact('allowedYears'));
     }
 
-    public function store(Request $request)
+    public function store(StoreVacationRequest $request)
     {
-        $request->validate([
-            'year' => [
-                'required', 
-                'integer', 
-                'min:' . date('Y'), // Bloqueia anos passados
-                // Regra de Unicidade Complexa:
-                // Único na tabela 'vacations', coluna 'year', MAS...
-                // ...apenas onde 'user_id' for igual ao ID do usuário atual.
-                Rule::unique('vacations')->where(function ($query) {
-                    return $query->where('user_id', Auth::id());
-                }),
-            ],
-            'mode' => 'required',
-            'period_1_start' => 'required|date',
-            'period_1_end' => 'required|date|after_or_equal:period_1_start',
-        ], [
-            'year.unique' => 'Você já possui um cadastro de férias para este ano.',
-            'year.min' => 'Não é possível cadastrar férias para anos passados.'
-        ]);
-
-        $data = $request->all();
+        $data = $request->validated();
         $data['user_id'] = Auth::id();
         $data['status'] = 'aprovado';
 
@@ -77,16 +56,13 @@ class VacationController extends Controller
 
     public function edit(Vacation $vacation)
     {
-        if (Auth::user()->profile !== 'admin' && Auth::id() !== $vacation->user_id) {
+        if (!Auth::user()->hasRole('Admin') && Auth::id() !== $vacation->user_id) {
             return redirect()->route('vacations.index')->with('error', 'Sem permissão.');
         }
 
-        // Gera lista de anos permitidos
         $currentYear = date('Y');
         $allowedYears = range($currentYear, $currentYear + 2);
 
-        // Se o ano da férias que é editado for antigo (ex: 2024) e não estiver na lista,
-        // adicionamos ele manualmente para não quebrar o select da View.
         if (!in_array($vacation->year, $allowedYears)) {
             array_unshift($allowedYears, $vacation->year);
         }
@@ -94,27 +70,11 @@ class VacationController extends Controller
         return view('vacations.edit', compact('vacation', 'allowedYears'));
     }
 
-    public function update(Request $request, Vacation $vacation)
+    public function update(UpdateVacationRequest $request, Vacation $vacation)
     {
-        if (Auth::user()->profile !== 'admin' && Auth::id() !== $vacation->user_id) {
-            abort(403);
-        }
+        // Autorização já feita no Form Request
 
-        $request->validate([
-            'year' => [
-                'required', 
-                'integer',
-                // Na edição, validamos a unicidade ignorando o próprio ID do registro
-                Rule::unique('vacations')->where(function ($query) use ($vacation) {
-                    return $query->where('user_id', $vacation->user_id);
-                })->ignore($vacation->id),
-            ],
-            // ... outras validações se necessário futuramente
-        ], [
-            'year.unique' => 'Este usuário já possui outro cadastro de férias para este ano.'
-        ]);
-
-        $vacation->fill($request->all());
+        $vacation->fill($request->validated());
 
         if ($vacation->isDirty()) {
             $changes = $vacation->getDirty();
@@ -146,7 +106,7 @@ class VacationController extends Controller
 
     public function destroy(Vacation $vacation)
     {
-        if (Auth::user()->profile !== 'admin' && Auth::id() !== $vacation->user_id) {
+        if (!Auth::user()->hasRole('Admin') && Auth::id() !== $vacation->user_id) {
             abort(403);
         }
         

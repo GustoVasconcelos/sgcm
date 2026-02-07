@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\ActionLog;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -24,29 +25,21 @@ class UserController extends Controller
         return view('users.create', compact('roles'));
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'roles' => 'required|array',
-        ]);
-
+        $validated = $request->validated();
         $isOperator = $request->has('is_operator');
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'is_operator' => $isOperator,
         ]);
 
-        // Busca os objetos Role pelos IDs enviados no formulário
-        $roles = Role::whereIn('id', $request->roles)->get();
+        $roles = Role::whereIn('id', $validated['roles'])->get();
         $user->syncRoles($roles);
 
-        // --- LOG: Criar Usuário ---
         ActionLog::register('Usuários', 'Criar Usuário', [
             'nome_criado' => $user->name,
             'grupos' => $user->getRoleNames(),
@@ -62,23 +55,18 @@ class UserController extends Controller
         return view('users.edit', compact('user', 'roles'));
     }
 
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
-            'password' => 'nullable|string|min:8|confirmed',
-            'roles' => 'required|array',
-        ]);
+        $validated = $request->validated();
 
         $data = [
-            'name' => $request->name,
-            'email' => $request->email,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
             'is_operator' => $request->has('is_operator'),
         ];
 
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+        if (!empty($validated['password'])) {
+            $data['password'] = Hash::make($validated['password']);
         }
 
         $user->fill($data);
@@ -88,17 +76,11 @@ class UserController extends Controller
         
         $user->save();
 
-        // --- CORREÇÃO AQUI ---
-        // 1. Pega os nomes atuais
         $currentRoles = $user->getRoleNames()->toArray();
+        $newRoles = Role::whereIn('id', $validated['roles'])->pluck('name')->toArray();
         
-        // 2. Transforma os IDs do formulário em NOMES (ex: [1, 2] vira ['Admin', 'Operador'])
-        $newRoles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
-        
-        // 3. Sincroniza usando os NOMES (Agora funciona!)
         $user->syncRoles($newRoles);
 
-        // Lógica de Log
         $rolesChanged = array_diff($currentRoles, $newRoles) || array_diff($newRoles, $currentRoles);
 
         if ($basicChanges || $rolesChanged) {
