@@ -42,7 +42,7 @@ class ScaleController extends Controller
         $end = $request->end_date ? Carbon::parse($request->end_date) : Carbon::today()->addDays(6);
 
         if ($start > $end) return back()->with('error', 'Data inicial maior que final.');
-        if ($end->diffInDays($start) > 40) return back()->with('error', 'Máximo 40 dias.');
+        if ($start->diffInDays($end) > 40) return back()->with('error', 'Máximo 40 dias.');
 
         // O Service cuida de buscar e montar os dados
         $data = $this->service->getScaleData($start, $end);
