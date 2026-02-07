@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Schedule;
 use App\Models\Program;
 use App\Models\ActionLog;
+use App\Http\Requests\StoreScheduleRequest;
+use App\Http\Requests\UpdateScheduleRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -41,16 +43,9 @@ class ScheduleController extends Controller
         return view('schedules.index', compact('saturday', 'sunday', 'saturdayGrade', 'sundayGrade', 'programs'));
     }
 
-    public function store(Request $request)
+    public function store(StoreScheduleRequest $request)
     {
-        $data = $request->validate([
-            'program_id' => 'required|exists:programs,id',
-            'date' => 'required|date',
-            'start_time' => 'required',
-            'custom_info' => 'nullable|string',
-            'duration' => 'required|integer',
-            'notes' => 'nullable|string'
-        ]);
+        $data = $request->validated();
 
         $schedule = Schedule::create($data);
 
@@ -153,26 +148,18 @@ class ScheduleController extends Controller
         return back()->with('success', 'Grade clonada com sucesso do dia ' . $sourceSaturday->format('d/m'));
     }
 
-    public function update(Request $request, Schedule $schedule)
+    public function update(UpdateScheduleRequest $request, Schedule $schedule)
     {
-        // 1. Validação
-        $request->validate([
-            'date' => 'required|date',
-            'program_id' => 'required|exists:programs,id',
-            'start_time' => 'required',
-            'duration' => 'required|integer|min:1',
-            'custom_info' => 'nullable|string',
-            'notes' => 'nullable|string'
-        ]);
+        $validated = $request->validated();
 
-        // 2. Preenche os dados na memória
+        // Preenche os dados na memória
         $schedule->fill([
-            'date' => $request->date,
-            'program_id' => $request->program_id,
-            'start_time' => $request->start_time,
-            'duration' => $request->duration,
-            'custom_info' => $request->custom_info,
-            'notes' => $request->notes,
+            'date' => $validated['date'],
+            'program_id' => $validated['program_id'],
+            'start_time' => $validated['start_time'],
+            'duration' => $validated['duration'],
+            'custom_info' => $validated['custom_info'] ?? null,
+            'notes' => $validated['notes'] ?? null,
             'status_mago' => false,
             'status_verification' => false,
         ]);
