@@ -28,7 +28,7 @@
             {{-- SELEÇÃO DE GRUPOS (ROLES) --}}
             <div class="mb-3">
                 <label class="form-label fw-bold">Grupos de Acesso</label>
-                <div class="card p-3 bg-light border-0">
+                <div class="card p-3 border-0">
                     @foreach($roles as $role)
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="roles[]" value="{{ $role->id }}" id="role_{{ $role->id }}">

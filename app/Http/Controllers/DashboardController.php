@@ -1,68 +1,19 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ScaleShift;
-use Carbon\Carbon;
+use App\Services\ScaleService;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(ScaleService $scaleService)
     {
         $user = Auth::user();
-        $displayShift = null;
-        $returnShift = null;
-        
-        // --- 1. LÓGICA DE ESCALAS ---
-        // Verifica se o usuário tem a permissão de ver escalas (definida no Seeder)
-        // ou se ele participa da escala (is_operator no banco ainda existe para fins de lógica de turno)
-        if ($user->is_operator && $user->can('ver_escalas')) {
-            $now = Carbon::now();
-            $today = Carbon::today();
-
-            $todayShift = ScaleShift::where('user_id', $user->id)
-                ->whereDate('date', $today)
-                ->first();
-
-            $showNext = false;
-
-            if ($todayShift) {
-                if ($todayShift->name === 'FOLGA') {
-                    $displayShift = $todayShift;
-                } 
-                else {
-                    $parts = explode(':', $todayShift->name);
-                    $startHour = isset($parts[0]) ? intval($parts[0]) : 0;
-
-                    if ($startHour > 0 && $now->hour >= $startHour) {
-                        $showNext = true;
-                    } else {
-                        $displayShift = $todayShift;
-                    }
-                }
-            } else {
-                $showNext = true;
-            }
-
-            if ($showNext) {
-                $displayShift = ScaleShift::where('user_id', $user->id)
-                    ->whereDate('date', '>', $today)
-                    ->orderBy('date', 'asc')
-                    ->orderBy('order', 'asc')
-                    ->first();
-            }
-
-            if ($displayShift && $displayShift->name === 'FOLGA') {
-                $returnShift = ScaleShift::where('user_id', $user->id)
-                    ->whereDate('date', '>', $displayShift->date)
-                    ->where('name', '!=', 'FOLGA')
-                    ->orderBy('date', 'asc')
-                    ->orderBy('order', 'asc')
-                    ->first();
-            }
-        }
+        // --- 1. LÓGICA DE ESCALAS (Refatorada para Service) ---
+        $shiftsInfo = $scaleService->getUserShiftsInfo($user);
+        $displayShift = $shiftsInfo['displayShift'];
+        $returnShift = $shiftsInfo['returnShift'];
 
         // --- 2. LÓGICA DOS CARDS (COM PERMISSÕES SPATIE) ---
         $menuItems = [

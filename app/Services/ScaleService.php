@@ -160,4 +160,71 @@ class ScaleService
             ]);
         }
     }
+    
+    /**
+     * Retorna a estrutura completa da escala (dias + operadores) para um período.
+     * Usado tanto pela Tela de Edição quanto pelo PDF.
+     */
+    public function getUserShiftsInfo(User $user): array
+    {
+        $displayShift = null;
+        $returnShift = null;
+
+        // Verifica se usuário pode ver escalas
+        if (!$user->is_operator || !$user->can('ver_escalas')) {
+            return compact('displayShift', 'returnShift');
+        }
+
+        $now = Carbon::now();
+        $today = Carbon::today();
+
+        // Turno de HOJE
+        $todayShift = ScaleShift::where('user_id', $user->id)
+            ->whereDate('date', $today)
+            ->first();
+
+        $showNext = false;
+
+        if ($todayShift) {
+            if ($todayShift->name === 'FOLGA') {
+                $displayShift = $todayShift;
+            } else {
+                // Formato "HH:MM - HH:MM" ou "HH:MM"
+                $parts = explode(':', $todayShift->name);
+                $startHour = isset($parts[0]) ? intval($parts[0]) : 0;
+
+                // Se já passou do horário de início, mostra o próximo
+                // Lógica original do controller: if ($startHour > 0 && $now->hour >= $startHour)
+                if ($startHour > 0 && $now->hour >= $startHour) {
+                    $showNext = true;
+                } else {
+                    $displayShift = $todayShift;
+                }
+            }
+        } else {
+            // Se não tem turno hoje, mostra próximo
+            $showNext = true;
+        }
+
+        // Se precisa mostrar o próximo (ou porque acabou o de hoje, ou hoje não tem nada)
+        if ($showNext) {
+            $displayShift = ScaleShift::where('user_id', $user->id)
+                ->whereDate('date', '>', $today)
+                ->orderBy('date', 'asc')
+                ->orderBy('order', 'asc')
+                ->first();
+        }
+
+        // Se o turno exibido for FOLGA, calcula a volta
+        if ($displayShift && $displayShift->name === 'FOLGA') {
+            $returnShift = ScaleShift::where('user_id', $user->id)
+                ->whereDate('date', '>', $displayShift->date)
+                ->where('name', '!=', 'FOLGA')
+                ->orderBy('date', 'asc')
+                ->orderBy('order', 'asc')
+                ->first();
+        }
+
+        return compact('displayShift', 'returnShift');
+    }
 }
