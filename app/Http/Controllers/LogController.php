@@ -40,4 +40,22 @@ class LogController extends Controller
 
         return view('admin.logs', compact('logs', 'users', 'modules'));
     }
+    
+    public function store(Request $request)
+    {
+        // Validação básica para garantir dados mínimos
+        $request->validate([
+            'module' => 'required|string',
+            'action' => 'required|string',
+            'details' => 'nullable|array',
+        ]);
+
+        ActionLog::register(
+            $request->module, 
+            $request->action, 
+            $request->details ?? []
+        );
+
+        return response()->json(['status' => 'ok'], 201);
+    }
 }

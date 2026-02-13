@@ -30,10 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
     // API de Logs (Frontend)
-    Route::post('/log/register', function (\Illuminate\Http\Request $request) {
-        \App\Models\ActionLog::register($request->module, $request->action, $request->details ?? []);
-        return response()->json(['status' => 'ok']);
-    });
+    Route::post('/log/register', [\App\Http\Controllers\LogController::class, 'store'])->name('log.register');
 
     // =========================================================================
     // MÓDULO: ESCALAS (Permissão: ver_escalas)

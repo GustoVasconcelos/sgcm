@@ -78,8 +78,14 @@ class ScaleAutoGenerator
 
     private function isDayFilled($dateStr)
     {
+        // Verifica se existem os turnos fundamentais (1 a 4)
         return ScaleShift::where('date', $dateStr)
-            ->whereIn('order', [1, 2, 3, 4])
+            ->whereIn('order', [
+                \App\Enums\ShiftOrder::MORNING->value, 
+                \App\Enums\ShiftOrder::AFTERNOON->value, 
+                \App\Enums\ShiftOrder::NIGHT->value, 
+                \App\Enums\ShiftOrder::DAWN->value
+            ])
             ->whereNotNull('user_id')
             ->exists();
     }
@@ -101,21 +107,28 @@ class ScaleAutoGenerator
     {
         $dateBr = $dateObj->format('d/m/Y');
         
+        // Mínimo de 3 turnos preenchidos para inferir algo
         if (count($map) < 3) {
             throw new \Exception("O dia anterior ($dateBr) está vazio ou incompleto. Preencha-o primeiro.");
         }
         
         // Verifica se falta a madrugada (Indica escala de 8h ou erro)
-        if (!isset($map[4])) {
+        if (!isset($map[\App\Enums\ShiftOrder::DAWN->value])) {
             throw new \Exception("O dia anterior ($dateBr) não tem o turno da madrugada (00h-06h). A automação só funciona em escalas de 6h.");
         }
     }
 
     private function calculateRotation($mapYesterday, $allOperators, $dateObj)
     {
-        // Descobre quem trabalhou ontem
+        $morning   = \App\Enums\ShiftOrder::MORNING->value;
+        $afternoon = \App\Enums\ShiftOrder::AFTERNOON->value;
+        $night     = \App\Enums\ShiftOrder::NIGHT->value;
+        $dawn      = \App\Enums\ShiftOrder::DAWN->value;
+        $off       = \App\Enums\ShiftOrder::OFF->value;
+
+        // Descobre quem trabalhou ontem (Turnos 1, 2, 3, 4)
         $workedYesterdayIds = [];
-        foreach ([1, 2, 3, 4] as $ord) {
+        foreach ([$morning, $afternoon, $night, $dawn] as $ord) {
             if (isset($mapYesterday[$ord])) $workedYesterdayIds[] = $mapYesterday[$ord];
         }
         
@@ -129,18 +142,18 @@ class ScaleAutoGenerator
         $userFolgaYesterday = reset($folgaYesterdayArr); 
 
         // ROTAÇÃO PADRÃO:
-        // Turno 1 (06h) <- Quem fez Turno 2 ontem
-        // Turno 2 (12h) <- Quem fez Turno 3 ontem
-        // Turno 3 (18h) <- Quem fez Turno 4 (Madruga) ontem
+        // Turno 1 (06h) <- Quem fez Turno 2 ontem (Tarde)
+        // Turno 2 (12h) <- Quem fez Turno 3 ontem (Noite)
+        // Turno 3 (18h) <- Quem fez Turno 4 ontem (Madruga)
         // Turno 4 (00h) <- Quem estava de FOLGA ontem
-        // FOLGA         <- Quem fez Turno 1 ontem
+        // FOLGA         <- Quem fez Turno 1 ontem (Manhã)
         
         return [
-            1 => $mapYesterday[2] ?? null,
-            2 => $mapYesterday[3] ?? null,
-            3 => $mapYesterday[4] ?? null,
-            4 => $userFolgaYesterday,
-            5 => $mapYesterday[1] ?? null // Vai para folga
+            $morning   => $mapYesterday[$afternoon] ?? null,
+            $afternoon => $mapYesterday[$night] ?? null,
+            $night     => $mapYesterday[$dawn] ?? null,
+            $dawn      => $userFolgaYesterday,
+            $off       => $mapYesterday[$morning] ?? null // Vai para folga
         ];
     }
 
