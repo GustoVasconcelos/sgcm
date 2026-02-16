@@ -39,20 +39,25 @@ RUN npm install && npm run build
 # 9. Passa a posse dos arquivos para o usuário padrão
 RUN chown -R 9999:9999 /var/www/html
 
-# --- SCRIPT DE INICIALIZAÇÃO (AGORA COM MIGRATE) ---
+# --- SCRIPT DE INICIALIZAÇÃO ---
 # Este script roda toda vez que o container liga (Start).
 # 1. Cria pastas.
 # 2. Corrige permissões (777 no storage para evitar dor de cabeça).
 # 3. Roda as migrações do banco automaticamente.
+# 4. Otimiza o Laravel.
 RUN printf "#!/bin/sh\n\
-mkdir -p /var/www/html/storage/framework/sessions\n\
-mkdir -p /var/www/html/storage/framework/views\n\
-mkdir -p /var/www/html/storage/framework/cache\n\
-mkdir -p /var/www/html/storage/logs\n\
-mkdir -p /var/www/html/bootstrap/cache\n\
-chown -R 9999:9999 /var/www/html/storage /var/www/html/bootstrap/cache\n\
-chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache\n\
-echo '🚀 Rodando Migrations...'\n\
-php artisan migrate --force\n\
-" > /etc/entrypoint.d/99-init-laravel.sh && \
-chmod +x /etc/entrypoint.d/99-init-laravel.sh
+    mkdir -p /var/www/html/storage/framework/sessions\n\
+    mkdir -p /var/www/html/storage/framework/views\n\
+    mkdir -p /var/www/html/storage/framework/cache\n\
+    mkdir -p /var/www/html/storage/logs\n\
+    mkdir -p /var/www/html/bootstrap/cache\n\
+    chown -R 9999:9999 /var/www/html/storage /var/www/html/bootstrap/cache\n\
+    chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache\n\
+    echo '🚀 Rodando Migrations...'\n\
+    php artisan migrate --force\n\
+    echo '🔥 Otimizando Laravel...'\n\
+    php artisan config:cache\n\
+    php artisan route:cache\n\
+    php artisan view:cache\n\
+    " > /etc/entrypoint.d/99-init-laravel.sh && \
+    chmod +x /etc/entrypoint.d/99-init-laravel.sh
