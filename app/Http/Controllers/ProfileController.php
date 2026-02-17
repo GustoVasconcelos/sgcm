@@ -23,23 +23,39 @@ class ProfileController extends Controller
         // Validação
         $request->validate([
             'name' => 'required|string|max:255',
-            // O 'unique' aqui ignora o ID do próprio usuário para não dar erro se ele mantiver o mesmo email
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            // Senha é opcional (nullable), só valida se o usuário digitar algo
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        // Atualiza dados básicos
-        $user->name = $request->name;
-        $user->email = $request->email;
+        $changes = [];
 
-        // Se digitou senha nova, atualiza o hash
+        // Verifica mudança de Nome
+        if ($user->name !== $request->name) {
+            $changes['nome'] = "De '{$user->name}' para '{$request->name}'";
+            $user->name = $request->name;
+        }
+
+        // Verifica mudança de Email
+        if ($user->email !== $request->email) {
+            $changes['email'] = "De '{$user->email}' para '{$request->email}'";
+            $user->email = $request->email;
+        }
+
+        // Verifica mudança de Senha
         if ($request->filled('password')) {
+            $changes['senha'] = 'Senha alterada';
             $user->password = Hash::make($request->password);
         }
 
-        $user->save();
+        // Se houve alguma alteração, salva e loga
+        if (!empty($changes)) {
+            $user->save();
+            \App\Models\ActionLog::register('Perfil', 'Atualização', $changes);
+            $message = 'Perfil atualizado com sucesso!';
+        } else {
+            $message = 'Nenhuma alteração realizada.';
+        }
 
-        return redirect()->route('profile.edit')->with('success', 'Perfil atualizado com sucesso!');
+        return redirect()->route('profile.edit')->with('success', $message);
     }
 }
