@@ -61,12 +61,47 @@ class ProfileLogTest extends TestCase
              ->put(route('profile.update'), [
                  'name' => 'Original Name',
                  'email' => 'original@example.com',
-                 'password' => 'newpassword',
-                 'password_confirmation' => 'newpassword',
+                 'password' => 'NewPassword1@',
+                 'password_confirmation' => 'NewPassword1@',
              ]);
 
         $log = ActionLog::latest()->first();
         $this->assertStringContainsString('Senha alterada', json_encode($log->details));
-        $this->assertStringNotContainsString('newpassword', json_encode($log->details));
+        $this->assertStringNotContainsString('NewPassword1@', json_encode($log->details));
+    }
+
+    public function test_password_must_be_strong(): void
+    {
+        $this->actingAs($this->user);
+
+        // Curta demais
+        $this->put(route('profile.update'), [
+            'name' => 'Name', 'email' => 'email@test.com',
+            'password' => 'Short1!', 'password_confirmation' => 'Short1!'
+        ])->assertSessionHasErrors('password');
+
+        // Sem maiúscula
+        $this->put(route('profile.update'), [
+            'name' => 'Name', 'email' => 'email@test.com',
+            'password' => 'password123!', 'password_confirmation' => 'password123!'
+        ])->assertSessionHasErrors('password');
+
+        // Sem número
+        $this->put(route('profile.update'), [
+            'name' => 'Name', 'email' => 'email@test.com',
+            'password' => 'Password!', 'password_confirmation' => 'Password!'
+        ])->assertSessionHasErrors('password');
+
+        // Sem símbolo
+        $this->put(route('profile.update'), [
+            'name' => 'Name', 'email' => 'email@test.com',
+            'password' => 'Password123', 'password_confirmation' => 'Password123'
+        ])->assertSessionHasErrors('password');
+        
+        // Válida
+        $this->put(route('profile.update'), [
+            'name' => 'Name', 'email' => 'email@test.com',
+            'password' => 'StrongPass1!', 'password_confirmation' => 'StrongPass1!'
+        ])->assertSessionHasNoErrors();
     }
 }
