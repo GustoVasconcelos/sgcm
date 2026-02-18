@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -24,7 +25,15 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => [
+                'nullable',
+                'string',
+                'confirmed',
+                Password::min(8) // Define um comprimento mínimo de 8 caracteres
+                    ->mixedCase()    // Exige pelo menos uma letra maiúscula e uma minúscula
+                    ->numbers()      // Exige pelo menos um número
+                    ->symbols(),     // Exige pelo menos um caractere especial
+            ],
         ]);
 
         $changes = [];
