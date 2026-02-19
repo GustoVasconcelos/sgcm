@@ -87,10 +87,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'name' => 'Administrador',
                 'email' => 'admin@band.com.br',
                 'password' => Hash::make('12345678'),
-                'is_operator' => true,
+                'is_operator' => false,
             ]);
             $admin->assignRole($roleAdmin);
             
+            $this->command->warn('Criando usuário NAO HA. Esse usuario é de uso interno do sistema, logo, sua senha é gerada de maneira aleatoria.');
             // Cria o Usuario NÃO HÁ
             User::create([
                 'name' => 'NÃO HÁ',
