@@ -72,7 +72,7 @@
                                         <input type="hidden" name="names[{{ $uniqueKey }}]" value="{{ $shift->name }}">
                                     </td>
                                     <td>
-                                        <select name="slots[{{ $uniqueKey }}]" class="form-select form-select-sm {{ $shift->user_id ? 'border-success fw-bold' : '' }}">
+                                        <select name="slots[{{ $uniqueKey }}]" class="form-select form-select-sm {{ $shift->user_id ? 'border-success fw-bold' : 'fw-bold' }}">
                                             <option value="">-- Selecione --</option>
 
                                             @if(isset($users) && count($users) > 0)
