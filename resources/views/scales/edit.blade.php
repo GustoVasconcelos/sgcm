@@ -74,16 +74,10 @@
                                     <td>
                                         <select name="slots[{{ $uniqueKey }}]" class="form-select form-select-sm {{ $shift->user_id ? 'border-success fw-bold' : '' }}">
                                             <option value="">-- Selecione --</option>
-                                            
-                                            @if($shift->name == 'FOLGA' && isset($idNaoHa))
-                                                <option value="{{ $idNaoHa }}" class="fw-bold text-danger" {{ $shift->user_id == $idNaoHa ? 'selected' : '' }}>
-                                                    NÃO HÁ
-                                                </option>
-                                            @endif
 
                                             @if(isset($users) && count($users) > 0)
                                                 @foreach($users as $u)
-                                                    <option value="{{ $u->id }}" {{ $shift->user_id == $u->id ? 'selected' : '' }}>
+                                                    <option value="{{ $u->id }}" class="{{ $u->name == config('scale.placeholder_user') ? 'fw-bold text-danger' : 'fw-bold' }}" {{ $shift->user_id == $u->id ? 'selected' : '' }}>
                                                         {{ $u->display_name }}
                                                     </option>
                                                 @endforeach

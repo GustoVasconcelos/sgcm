@@ -47,15 +47,11 @@ class ScaleController extends Controller
         // O Service cuida de buscar e montar os dados
         $data = $this->service->getScaleData($start, $end);
 
-        // Busca ID do "NÃO HÁ" para a view (se necessário na view blade)
-        $idNaoHa = $data['users']->firstWhere('name', 'NÃO HÁ')?->id;
-
         return view('scales.edit', [
             'days' => $data['days'],
             'users' => $data['users'],
             'start' => $start,
-            'end' => $end,
-            'idNaoHa' => $idNaoHa
+            'end' => $end
         ]);
     }
 

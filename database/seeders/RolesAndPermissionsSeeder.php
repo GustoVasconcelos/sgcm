@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Permission;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -89,6 +90,14 @@ class RolesAndPermissionsSeeder extends Seeder
                 'is_operator' => true,
             ]);
             $admin->assignRole($roleAdmin);
+            
+            // Cria o Usuario NÃO HÁ
+            User::create([
+                'name' => 'NÃO HÁ',
+                'email' => 'naoha@sistema.com.br',
+                'password' => Hash::make(Str::password()),
+                'is_operator' => true,
+            ]);
         }
     }
 }
