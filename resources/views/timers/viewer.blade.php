@@ -118,10 +118,14 @@
         }
 
         .sub-timer-label {
-            font-size: 1.5vw;
+            font-size: 3vw;
+            background-color: #333;
+            padding: 5px 30px;
+            border-radius: 8px;
             text-transform: uppercase;
-            color: #888;
-            margin-bottom: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            display: inline-block;
         }
     </style>
 </head>
@@ -140,7 +144,7 @@
     <div class="bottom-area">
         
         <div id="progressiveBox" class="sub-timer-box active" style="display: block;">
-            <div class="sub-timer-label">Tempo de Bloco / Link</div>
+            <div class="sub-timer-label">Bloco / Mochilink</div>
             <div id="stopwatchTimer" class="sub-timer-digits timer-green">00:00:00</div>
         </div>
 
