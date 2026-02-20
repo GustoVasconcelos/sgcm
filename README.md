@@ -9,7 +9,7 @@
 [![Tests](https://github.com/GustoVasconcelos/sgcm/actions/workflows/tests.yml/badge.svg)](https://github.com/GustoVasconcelos/sgcm/actions/workflows/tests.yml)
 ![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php)
 ![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-GNU%20GPL%20v3-green)
 
 </div>
 
@@ -111,4 +111,4 @@ O sistema utiliza roles para controle de acesso:
 
 ## 📄 Licença
 
-Este projeto está sob a licença [MIT](LICENSE).
+Este projeto está sob a licença [GNU GPL v3](LICENSE).
