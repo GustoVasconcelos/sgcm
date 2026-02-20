@@ -1,59 +1,114 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Logo Band](https://raw.githubusercontent.com/GustoVasconcelos/sgcm/refs/heads/main/public/logotipo-band.webp)
 
-## About Laravel
+# SGCM — Sistema de Gerenciamento do Controle Mestre
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Um sistema web para gerenciamento de escalas, afinacao de jornais, timers de estúdio, ferias dos operadores, programas locais e independentes.**
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+[![Tests](https://github.com/GustoVasconcelos/sgcm/actions/workflows/tests.yml/badge.svg)](https://github.com/GustoVasconcelos/sgcm/actions/workflows/tests.yml)
+![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php)
+![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+</div>
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 📌 Sobre o Projeto
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+O **SGCM** é uma aplicação web desenvolvida em Laravel para auxiliar a equipe do Controle Mestre da Band Paulista no gerenciamento operacional do dia a dia. Ele centraliza o controle de escalas de trabalho, a afinacao de jornais, o monitoramento de timers de estúdio, gerenciamento de ferias dos operadores e dos programas locais e independentes que sao exibidos ao finais de semana, e o registro de logs de ações dos usuários.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## ✨ Funcionalidades
 
-### Premium Partners
+| Módulo | Descrição |
+|---|---|
+| **Dashboard** | Visão geral dos turnos do usuário logado e datas de folga/retorno |
+| **Afinacao de Jornais** | Gerenciamento de afinacao de jornais |
+| **Escalas** | Criação, edição e geração automática de escalas de turnos (6h/8h) |
+| **Relatórios** | Geração de PDF e envio de escalas por e-mail |
+| **Timer de Estúdio** | Cronômetro e regressiva em tempo real para operadores e coordenadores |
+| **Programação** | Cadastro de programas e grades da emissora |
+| **Férias** | Controle de períodos de férias e afastamentos dos operadores |
+| **Admin** | Dashboard administrativo com métricas, gerenciamento de usuários, roles e permissões |
+| **Logs** | Rastreamento completo de ações dos usuários (com filtros por módulo, usuário e data) |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 🛠️ Stack Tecnológica
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **Backend:** Laravel 12, PHP 8.2
+- **Frontend:** Blade Templates, CSS (Bootstrap 5.3), JavaScript (Vanilla)
+- **Banco de Dados:** MySQL / MariaDB
+- **Autenticação & Permissões:** Laravel Auth + Spatie Laravel Permission
+- **Build:** Vite + Node.js
+- **Containerização:** Docker + Docker Compose
+- **CI/CD:** GitHub Actions
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🚀 Como Executar Localmente
 
-## Security Vulnerabilities
+### Com Docker (Recomendado)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+# 1. Clone o repositório
+git clone https://github.com/GustoVasconcelos/sgcm.git
+cd sgcm
 
-## License
+# 2. Configure o ambiente
+cp .env.example .env
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 3. Suba os containers
+docker compose up -d
+
+# 4. Acesse em http://localhost:8080
+```
+
+> As migrations e otimizações do Laravel rodam automaticamente na inicialização do container.
+
+## 🔐 Criando um usuário admin
+
+### Para criar um usuário admin, rode o comando:
+
+```bash
+docker compose exec app php artisan db:seed --class=RolesAndPermissionsSeeder
+```
+
+---
+
+## 🧪 Testes
+
+O projeto possui uma suíte de testes automatizados (Unit + Feature), executados também no CI/CD via GitHub Actions.
+
+```bash
+php artisan test
+```
+
+---
+
+## 🔑 Permissões e Acessos
+
+O sistema utiliza roles para controle de acesso:
+
+| Role | Acesso |
+|---|---|
+| `admin` | Painel administrativo, usuários, roles, logs e configurações |
+| `operador` | Dashboard, afinacao, escalas, timer de estúdio, ferias, programas e perfil |
+
+---
+
+## 🐳 Infraestrutura Docker
+
+| Serviço | Descrição |
+|---|---|
+| `app` | PHP 8.2 + Nginx (via `serversideup/php`) |
+| `db` | MariaDB 10.6 |
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença [MIT](LICENSE).

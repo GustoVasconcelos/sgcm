@@ -40,7 +40,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_USER: ${DB_USERNAME}
     # COMANDO CRÍTICO: Limita o uso de RAM do MariaDB
-    command: --innodb-buffer-pool-size=128M --max-connections=50
+    # command: --innodb-buffer-pool-size=128M --max-connections=50
     volumes:
       - db_data:/var/lib/mysql
     networks:
