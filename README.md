@@ -71,7 +71,7 @@ docker compose up -d
 
 ## 🔐 Criando um usuário admin
 
-### Para criar um usuário admin, rode o comando:
+Para criar um usuário admin, rode o comando:
 
 ```bash
 docker compose exec app php artisan db:seed --class=RolesAndPermissionsSeeder
