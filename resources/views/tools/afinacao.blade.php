@@ -53,7 +53,7 @@
 
             <div class="card shadow-lg" id="resultCard">
                 <div class="card-header fw-bold text-center" id="resultTitle">DEFINA O TEMPO LIMITE</div>
-                <div class="card-body text-center p-3">
+                <div class="card-body text-center p-2">
                     <div id="displayDiff" class="total-display">--:--:--</div>
                     <small id="resultMessage" class="fw-bold text-uppercase mt-2 d-block">Defina o tempo limite</small>
                 </div>
