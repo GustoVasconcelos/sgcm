@@ -86,7 +86,7 @@
         .status-critical { color: var(--text-red); }
 
         .bottom-area {
-            width: 90%;
+            width: 100%;
             display: flex;
             justify-content: center;
             gap: 20px;

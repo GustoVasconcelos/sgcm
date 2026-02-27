@@ -122,7 +122,7 @@
         </div>
     </nav>
 
-    <div class="container mt-4 flex-grow-1">
+    <div class="container mt-3 flex-grow-1">
         @if ($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <strong><i class="bi bi-exclamation-triangle-fill"></i> Ops! Verifique os erros abaixo:</strong>

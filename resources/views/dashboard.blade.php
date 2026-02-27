@@ -3,14 +3,14 @@
 @section('content')
 <div class="container mt-2">
     
-    <div class="row mb-4">
+    <div class="row mb-3">
         <div class="col-12 text-center">
             <h2 class="fw-light">Olá, <span class="fw-bold">{{ explode(' ', Auth::user()->name)[0] }}</span>!</h2>
         </div>
     </div>
 
     @if(Auth::user()->is_operator)
-    <div class="row justify-content-center mb-4">
+    <div class="row justify-content-center mb-3">
         <div class="col-md-8">
             
             @if($displayShift)
@@ -38,7 +38,7 @@
                 @endphp
 
                 <div class="card {{ $cardClass }} shadow-lg">
-                    <div class="card-body p-4">
+                    <div class="card-body p-3">
                         
                         {{-- CABEÇALHO --}}
                         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -114,7 +114,7 @@
     
     <div class="row g-4">
         @foreach($cards as $card)
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-xl-3">
                 <a href="{{ $card['route'] }}" class="text-decoration-none"> 
                     {{-- Usa classe padrão se não tiver uma específica (bg_class) --}}
                     <div class="card h-100 {{ $card['bg_class'] ?? 'bg-secondary bg-opacity-10 border-0' }} shadow-sm hover-card">

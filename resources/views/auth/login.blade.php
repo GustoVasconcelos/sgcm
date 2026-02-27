@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
     <link rel="shortcut icon" href="{{ asset('logotipo-band.ico') }}" >
 </head>
-<body>
+<body class="d-flex flex-column align-items-center justify-content-center min-vh-100">
 
-    <div class="card login-card shadow">
+    <div class="card login-card shadow mt-auto">
         <div class="text-center mb-4">
             <img src="{{ asset('logotipo-band.webp') }}" alt="Logo" height="30" class="mb-3">
             <h3 class="fw-bold text-primary">SGCM</h3>
@@ -43,7 +43,7 @@
         </form>
     </div>
 
-    <div class="fixed-bottom text-center pb-3">
+    <div class="text-center pb-3 mt-auto">
         <small class="text-secondary">
             &copy; {{ date('Y') }} SGCM - Sistema Gerenciador do Controle Mestre
             <br>

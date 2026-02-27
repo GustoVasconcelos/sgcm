@@ -43,7 +43,7 @@
                 @forelse($vacations as $v)
                 <tr>
                     <td class="fw-bold text-uppercase">{{ $v->user->name }}</td>
-                    <td><small>{{ $v->mode_label }}</small></td>
+                    <td>{{ $v->mode_label }}</td>
                     <td>
                         {{ \Carbon\Carbon::parse($v->period_1_start)->format('d/m/Y') }} a 
                         {{ \Carbon\Carbon::parse($v->period_1_end)->format('d/m/Y') }}

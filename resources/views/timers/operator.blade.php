@@ -97,19 +97,23 @@
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <div class="col-4 text-center border-end border-warning">
+                        <div class="col-5 text-center">
                             <h2 id="previewBk" class="m-0 fw-bold text-white font-monospace">--:--</h2>
                         </div>
                         
-                        <div class="col-8">
-                            <div class="input-group">
+                        <div class="col-7">
+                            <div class="mb-3">
                                 <input type="time" step="1" id="bkInput" class="form-control text-center font-monospace fw-bold">
-                                <button class="btn btn-warning border border-warning-subtle" onclick="sendBk()">
-                                    <i class="bi bi-play-fill"></i>ENVIAR
-                                </button>
-                                <button class="btn btn-danger" onclick="stopBk()" title="Limpar">
-                                    <i class="bi bi-stop-fill"></i>LIMPAR
-                                </button>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-warning border border-warning-subtle" onclick="sendBk()">
+                                        <i class="bi bi-play-fill"></i>ENVIAR
+                                    </button>
+                                    <button class="btn btn-danger" onclick="stopBk()" title="Limpar">
+                                        <i class="bi bi-stop-fill"></i>LIMPAR
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
