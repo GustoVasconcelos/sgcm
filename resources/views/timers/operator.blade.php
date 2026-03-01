@@ -67,6 +67,7 @@
             <div class="card shadow-sm border-success mb-4 flex-grow-1">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0"><i class="bi bi-stopwatch"></i> Progressiva (Link/Bloco)</h5>
+                    <small class="">Atalhos: <b>F1</b> Iniciar | <b>F2</b> Pausar | <b>F3</b> Zerar</small>
                 </div>
                 <div class="card-body text-center d-flex flex-column justify-content-between h-100">
                     
@@ -291,6 +292,22 @@
 
     setInterval(syncState, 1000); 
     syncState().then(() => requestAnimationFrame(updatePreview));
+
+    // Sistema de Atalhos
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'F1') {
+            event.preventDefault();
+            controlStopwatch('start');
+        }
+        if (event.key === 'F2') {
+            event.preventDefault();
+            controlStopwatch('pause');
+        }
+        if (event.key === 'F3') {
+            event.preventDefault();
+            controlStopwatch('reset');
+        }
+    });
 
 </script>
 @endsection
