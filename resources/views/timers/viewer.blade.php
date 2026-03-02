@@ -7,7 +7,7 @@
     <title>Regressiva de Estúdio - SGCM</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="shortcut icon" href="{{ asset('logotipo-band.ico') }}">
+    <link rel="shortcut icon" href="{{ asset('logotipo-band.ico') }}" >
 
     <style>
         :root {
@@ -23,13 +23,12 @@
             color: var(--text-main);
             font-family: 'Roboto Mono', monospace;
             margin: 0;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            overflow-x: hidden;
-            /* evita scroll lateral, mas permite respirar verticalmente */
+            overflow: hidden;
         }
 
         /* --- BOTÃO FANTASMA (VOLTAR) --- */
@@ -44,10 +43,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 14px;
+            padding: 10px 15px;
             border-radius: 30px;
             transition: all 0.3s ease;
-            opacity: 0.15;
+            opacity: 0.1; /* Quase invisível em repouso */
             z-index: 1000;
         }
 
@@ -55,68 +54,54 @@
             opacity: 1; /* Totalmente visível no hover */
             background-color: rgba(255, 255, 255, 0.1); /* Fundo leve */
             color: white;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
         }
 
         /* --- LAYOUT DA REGRESSIVA (PRINCIPAL) --- */
         .regressive-container {
             text-align: center;
-            margin-bottom: 4vh;
-            padding: 0 16px;
+            margin-bottom: 5vh;
         }
 
         .label-mode {
-            font-size: clamp(0.85rem, 4vw, 4rem);
+            font-size: 4vw;
             background-color: #333;
-            padding: 5px 24px;
+            padding: 5px 30px;
             border-radius: 8px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 12px;
+            margin-bottom: 20px;
             display: inline-block;
         }
 
         .big-timer {
-            font-size: clamp(3.5rem, 20vw, 14rem);
+            font-size: 20vw; /* Gigante: 20% da largura da tela */
             line-height: 1;
             font-weight: 700;
-            text-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5);
+            text-shadow: 4px 4px 10px rgba(0,0,0,0.5);
         }
 
         /* Cores de status */
-        .status-normal {
-            color: var(--text-main);
-        }
-
-        .status-warning {
-            color: var(--text-yellow);
-        }
-
-        .status-critical {
-            color: var(--text-red);
-        }
+        .status-normal { color: var(--text-main); }
+        .status-warning { color: var(--text-yellow); }
+        .status-critical { color: var(--text-red); }
 
         .bottom-area {
             width: 100%;
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            /* quebra linha se apertar */
-            gap: 16px;
-            border-top: 3px solid #333;
-            padding: 16px 16px 20px;
-            box-sizing: border-box;
+            gap: 20px;
+            border-top: 4px solid #333;
+            padding-top: 20px;
         }
 
         /* CARD COMUM PARA PROGRESSIVA E BK */
         .sub-timer-box {
-            flex: 1;
-            min-width: 140px;
-            /* evita ficar muito apertado lado a lado */
+            flex: 1; /* Ocupam o mesmo espaço */
             text-align: center;
-            opacity: 0.3;
+            opacity: 0.3; /* Apagado por padrão */
             transition: all 0.3s;
-            display: none;
+            display: none; /* Escondido se não usado */
         }
 
         .sub-timer-box.active {
@@ -125,21 +110,16 @@
         }
 
         /* Cores específicas */
-        .timer-green {
-            color: var(--text-green);
-        }
-
-        .timer-yellow {
-            color: var(--text-yellow);
-        }
+        .timer-green { color: var(--text-green); }
+        .timer-yellow { color: var(--text-yellow); }
 
         .sub-timer-digits {
-            font-size: clamp(2rem, 8vw, 6rem);
+            font-size: 8vw;
             line-height: 1;
         }
 
         .sub-timer-label {
-            font-size: clamp(0.7rem, 3vw, 1.5rem);
+            font-size: 3vw;
             background-color: #333;
             padding: 5px 30px;
             border-radius: 8px;
@@ -150,76 +130,46 @@
         }
 
         /* ============================================================
-           PORTRAIT (celular em pé): tela estreita, muito espaço vertical
+           MOBILE ONLY (max-width: 768px)
+           TVs e monitores NUNCA entram aqui — layout base intocado
            ============================================================ */
-        @media (max-width: 600px) and (orientation: portrait) {
-            .big-timer {
-                font-size: clamp(4rem, 26vw, 9rem);
+        @media (max-width: 768px) {
+
+            /* Corrige 100vh no Safari/Chrome mobile (barra de URL inclusa) */
+            body {
+                height: auto;
+                min-height: 100svh;
+                /* svh = "small viewport height", desconta a barra do browser */
+                overflow-x: hidden;
+                overflow-y: auto;
             }
 
+            /* Labels ficam muito miúdas com vw pequeno — forçar mínimo legível */
             .label-mode {
-                font-size: clamp(0.8rem, 5vw, 1.4rem);
-                padding: 5px 16px;
-                letter-spacing: 1px;
-            }
-
-            .sub-timer-digits {
-                font-size: clamp(2.2rem, 13vw, 5rem);
+                font-size: max(4vw, 1rem);
             }
 
             .sub-timer-label {
-                font-size: clamp(0.65rem, 4vw, 1rem);
-                padding: 4px 12px;
+                font-size: max(3vw, 0.75rem);
             }
 
+            /* Empilha os sub-timers verticalmente em tela estreita */
             .bottom-area {
                 flex-direction: column;
-                /* empilha os cards verticalmente */
                 align-items: center;
+                padding: 16px;
                 gap: 12px;
-                padding: 14px 16px 16px;
             }
 
             .sub-timer-box {
-                min-width: unset;
                 width: 100%;
             }
-        }
 
-        /* ============================================================
-           LANDSCAPE em celular (altura pequena): comprime tudo
-           ============================================================ */
-        @media (max-height: 500px) and (orientation: landscape) {
-            body {
-                justify-content: flex-start;
-                padding-top: 8px;
-            }
-
-            .regressive-container {
-                margin-bottom: 2vh;
-            }
-
-            .big-timer {
-                font-size: clamp(2.5rem, 16vw, 7rem);
-            }
-
-            .label-mode {
-                font-size: clamp(0.65rem, 3vw, 1rem);
-                margin-bottom: 6px;
-            }
-
-            .bottom-area {
-                padding: 10px 16px;
-                border-top-width: 2px;
-            }
-
-            .sub-timer-digits {
-                font-size: clamp(1.5rem, 7vw, 4rem);
-            }
-
-            .sub-timer-label {
-                font-size: clamp(0.6rem, 2.5vw, 0.9rem);
-                padding: 3px 12px;
+            /* Botão "Voltar" responde ao toque (touch não dispara :hover) */
+            .ghost-btn:active {
+                opacity: 1;
+                background-color: rgba(255, 255, 255, 0.1);
+                color: white;
             }
         }
     </style>
