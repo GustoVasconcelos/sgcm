@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Regressiva de Estúdio - SGCM</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="shortcut icon" href="{{ asset('logotipo-band.ico') }}" >
-    
+    <link rel="shortcut icon" href="{{ asset('logotipo-band.ico') }}">
+
     <style>
         :root {
             --bg-color: #121212;
@@ -22,12 +23,13 @@
             color: var(--text-main);
             font-family: 'Roboto Mono', monospace;
             margin: 0;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            overflow-x: hidden;
+            /* evita scroll lateral, mas permite respirar verticalmente */
         }
 
         /* --- BOTÃO FANTASMA (VOLTAR) --- */
@@ -42,10 +44,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 15px;
+            padding: 8px 14px;
             border-radius: 30px;
             transition: all 0.3s ease;
-            opacity: 0.1; /* Quase invisível em repouso */
+            opacity: 0.15;
             z-index: 1000;
         }
 
@@ -53,54 +55,68 @@
             opacity: 1; /* Totalmente visível no hover */
             background-color: rgba(255, 255, 255, 0.1); /* Fundo leve */
             color: white;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
         /* --- LAYOUT DA REGRESSIVA (PRINCIPAL) --- */
         .regressive-container {
             text-align: center;
-            margin-bottom: 5vh;
+            margin-bottom: 4vh;
+            padding: 0 16px;
         }
 
         .label-mode {
-            font-size: 4vw;
+            font-size: clamp(0.85rem, 4vw, 4rem);
             background-color: #333;
-            padding: 5px 30px;
+            padding: 5px 24px;
             border-radius: 8px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             display: inline-block;
         }
 
         .big-timer {
-            font-size: 20vw; /* Gigante: 20% da largura da tela */
+            font-size: clamp(3.5rem, 20vw, 14rem);
             line-height: 1;
             font-weight: 700;
-            text-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+            text-shadow: 4px 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         /* Cores de status */
-        .status-normal { color: var(--text-main); }
-        .status-warning { color: var(--text-yellow); }
-        .status-critical { color: var(--text-red); }
+        .status-normal {
+            color: var(--text-main);
+        }
+
+        .status-warning {
+            color: var(--text-yellow);
+        }
+
+        .status-critical {
+            color: var(--text-red);
+        }
 
         .bottom-area {
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 20px;
-            border-top: 4px solid #333;
-            padding-top: 20px;
+            flex-wrap: wrap;
+            /* quebra linha se apertar */
+            gap: 16px;
+            border-top: 3px solid #333;
+            padding: 16px 16px 20px;
+            box-sizing: border-box;
         }
 
         /* CARD COMUM PARA PROGRESSIVA E BK */
         .sub-timer-box {
-            flex: 1; /* Ocupam o mesmo espaço */
+            flex: 1;
+            min-width: 140px;
+            /* evita ficar muito apertado lado a lado */
             text-align: center;
-            opacity: 0.3; /* Apagado por padrão */
+            opacity: 0.3;
             transition: all 0.3s;
-            display: none; /* Escondido se não usado */
+            display: none;
         }
 
         .sub-timer-box.active {
@@ -109,16 +125,21 @@
         }
 
         /* Cores específicas */
-        .timer-green { color: var(--text-green); }
-        .timer-yellow { color: var(--text-yellow); }
+        .timer-green {
+            color: var(--text-green);
+        }
+
+        .timer-yellow {
+            color: var(--text-yellow);
+        }
 
         .sub-timer-digits {
-            font-size: 8vw;
+            font-size: clamp(2rem, 8vw, 6rem);
             line-height: 1;
         }
 
         .sub-timer-label {
-            font-size: 3vw;
+            font-size: clamp(0.7rem, 3vw, 1.5rem);
             background-color: #333;
             padding: 5px 30px;
             border-radius: 8px;
@@ -127,12 +148,87 @@
             margin-bottom: 5px;
             display: inline-block;
         }
+
+        /* ============================================================
+           PORTRAIT (celular em pé): tela estreita, muito espaço vertical
+           ============================================================ */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .big-timer {
+                font-size: clamp(4rem, 26vw, 9rem);
+            }
+
+            .label-mode {
+                font-size: clamp(0.8rem, 5vw, 1.4rem);
+                padding: 5px 16px;
+                letter-spacing: 1px;
+            }
+
+            .sub-timer-digits {
+                font-size: clamp(2.2rem, 13vw, 5rem);
+            }
+
+            .sub-timer-label {
+                font-size: clamp(0.65rem, 4vw, 1rem);
+                padding: 4px 12px;
+            }
+
+            .bottom-area {
+                flex-direction: column;
+                /* empilha os cards verticalmente */
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px 16px;
+            }
+
+            .sub-timer-box {
+                min-width: unset;
+                width: 100%;
+            }
+        }
+
+        /* ============================================================
+           LANDSCAPE em celular (altura pequena): comprime tudo
+           ============================================================ */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                justify-content: flex-start;
+                padding-top: 8px;
+            }
+
+            .regressive-container {
+                margin-bottom: 2vh;
+            }
+
+            .big-timer {
+                font-size: clamp(2.5rem, 16vw, 7rem);
+            }
+
+            .label-mode {
+                font-size: clamp(0.65rem, 3vw, 1rem);
+                margin-bottom: 6px;
+            }
+
+            .bottom-area {
+                padding: 10px 16px;
+                border-top-width: 2px;
+            }
+
+            .sub-timer-digits {
+                font-size: clamp(1.5rem, 7vw, 4rem);
+            }
+
+            .sub-timer-label {
+                font-size: clamp(0.6rem, 2.5vw, 0.9rem);
+                padding: 3px 12px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <a href="{{ route('dashboard') }}" class="ghost-btn">
-        <i class="bi bi-arrow-left-circle-fill fs-4"></i> 
+        <i class="bi bi-arrow-left-circle-fill fs-4"></i>
         <span>Voltar</span>
     </a>
 
@@ -142,7 +238,7 @@
     </div>
 
     <div class="bottom-area">
-        
+
         <div id="progressiveBox" class="sub-timer-box active" style="display: block;">
             <div class="sub-timer-label">Bloco / Mochilink</div>
             <div id="stopwatchTimer" class="sub-timer-digits timer-green">00:00:00</div>
@@ -169,13 +265,13 @@
             try {
                 // Marca a hora que saiu o pedido
                 const requestStart = Date.now();
-                
+
                 const response = await fetch('/timers/status');
                 const data = await response.json();
 
                 // Marca a hora que chegou
                 const now = Date.now();
-                
+
                 // Calcula o tempo de viagem (ping)
                 const latency = (now - requestStart) / 2;
 
@@ -189,7 +285,7 @@
                 targetTime = data.target_time;
                 bkTargetTime = data.bk_target_time;
                 document.getElementById('modeLabel').innerText = data.mode_label || 'LIVRE';
-                
+
                 // Atualiza dados da Progressiva
                 stopwatchStart = data.stopwatch.started_at;
                 stopwatchAccumulated = data.stopwatch.accumulated;
@@ -207,7 +303,7 @@
 
             // 1. Lógica da REGRESSIVA
             const mainTimerEl = document.getElementById('mainTimer');
-            
+
             if (targetTime) {
                 // Cálculo Delta: Alvo - Agora
                 let diff = targetTime - nowSynced;
@@ -258,7 +354,7 @@
 
                 let diffBk = bkTargetTime - nowSynced;
                 if (diffBk < 0) diffBk = 0;
-                
+
                 // Formata o texto padrão (HH:MM:SS)
                 let textBk = formatMs(diffBk);
 
@@ -298,4 +394,5 @@
 
     </script>
 </body>
+
 </html>
