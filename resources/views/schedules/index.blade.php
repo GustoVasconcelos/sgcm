@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="{{ asset('css/schedules.css') }}">
 @endpush
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
     <div>
         <h3 class="fw-bold"><i class="bi bi-broadcast"></i> Grade Fim de Semana</h3>
     </div>
@@ -18,7 +18,7 @@
             Próximo &raquo;
         </a>
     </div>
-    <div>
+    <div class="d-flex gap-1">
         <a href="{{ route('programs.index') }}" class="btn btn-secondary me-1" title="Gerenciar Lista de Programas">
             <i class="bi bi-list-ul"></i> Programas
         </a>

@@ -7,25 +7,25 @@
     <input type="hidden" name="start_date" value="{{ $start->format('Y-m-d') }}">
     <input type="hidden" name="end_date" value="{{ $end->format('Y-m-d') }}">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-bold">
+    <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3 mb-3">
+        <h3 class="fw-bold mb-0">
             <i class="bi bi-calendar3"></i> 
             Escalas de {{ $start->format('d/m') }} a {{ $end->format('d/m') }}
         </h3>
-        <div>
-            <button type="submit" form="form-auto-generate" class="btn btn-warning me-2" title="Preencher dias vazios automaticamente">
+        <div class="d-flex flex-wrap gap-2">
+            <button type="submit" form="form-auto-generate" class="btn btn-warning w-md-auto" title="Preencher dias vazios automaticamente">
                 <i class="bi bi-magic"></i> Escala Rotativa
             </button>
-            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#emailModal">
+            <button type="button" class="btn btn-primary w-md-auto" data-bs-toggle="modal" data-bs-target="#emailModal">
                 <i class="bi bi-envelope-at"></i> Enviar por Email
             </button>
-            <a href="{{ route('scales.print', ['start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]) }}" target="_blank" class="btn btn-danger me-2">
+            <a href="{{ route('scales.print', ['start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]) }}" target="_blank" class="btn btn-danger w-md-auto">
                 <i class="bi bi-file-pdf"></i> Baixar PDF
             </a>
-            <a href="{{ route('scales.index') }}" class="btn btn-secondary me-2">
+            <a href="{{ route('scales.index') }}" class="btn btn-secondary w-md-auto">
                 <i class="bi bi-calendar3"></i> Trocar Datas
-            </a>            
-            <button type="submit" class="btn btn-success">
+            </a>
+            <button type="submit" class="btn btn-success w-md-auto">
                 <i class="bi bi-floppy"></i> Salvar Escala
             </button>
         </div>

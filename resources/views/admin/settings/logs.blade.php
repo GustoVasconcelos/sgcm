@@ -10,7 +10,7 @@
     <div class="row g-4">
         <div class="col-md-12">
             <div class="card shadow-sm border-start border-2">
-                <div class="card-body d-flex justify-content-around align-items-center">
+                <div class="card-body d-flex justify-content-around align-items-center gap-3">
                     <div class="text-center">
                         <h2 class="fw-bold text-primary">{{ number_format($totalLogs, 0, ',', '.') }}</h2>
                         <small class="text-muted text-uppercase fw-bold">Total de Registros</small>

@@ -28,7 +28,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         /* --- BOTÃO FANTASMA (VOLTAR) --- */

@@ -1,11 +1,11 @@
 @extends('layout')
 
 @section('content')
-<div class="row mb-4 align-items-center">
-    <div class="col-md-6">
+<div class="d-flex flex-column flex-md-row mb-4 align-items-center gap-3 justify-content-between">
+    <div>
         <h3 class="fw-bold"><i class="bi bi-calendar-event"></i> Controle de Férias</h3>
     </div>
-    <div class="col-md-6 text-end">
+    <div>
         <a href="{{ route('vacations.create') }}" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Cadastrar Minhas Férias
         </a>
@@ -28,7 +28,7 @@
 </div>
 
 <div class="card shadow-sm">
-    <div class="card-body p-0">
+    <div class="card-body table-responsive table-responsive-sm p-0">
         <table class="table table-bordered table-striped table-hover align-middle mb-0">
             <thead class="table-dark">
                 <tr>
@@ -36,7 +36,7 @@
                     <th>Modalidade</th>
                     <th>1º Período</th>
                     <th>2º Período</th>
-                    <th style="width: 100px;">Ações</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,7 +57,7 @@
                     <td class="text-center">
                         {{-- Só mostra botões se for Admin OU Dono das férias --}}
                         @if(Auth::user()->profile === 'admin' || Auth::id() === $v->user_id)
-                            <div class="btn-group btn-group-sm">
+                            <div class="d-flex flex-column flex-md-row btn-group btn-group-sm gap-1">
                                 {{-- <a href="{{ route('vacations.edit', $v->id) }}" class="btn btn-primary" title="Editar">Editar</a> --}}
                                 <form class="px-1" action="{{ route('vacations.edit', $v->id) }}" method="POST">
                                     @csrf @method('GET')

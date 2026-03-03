@@ -1,11 +1,11 @@
 @extends('layout')
 
 @section('content')
-<div class="row mb-3">
-    <div class="col">
+<div class="d-flex flex-column flex-md-row mb-4 align-items-center gap-3 justify-content-between">
+    <div>
         <h3 class="mb-0 fw-bold"><i class="bi bi-people-fill"></i> Gerenciar Grupos de Acesso</h3>
     </div>
-    <div class="col text-end">
+    <div>
         <a href="{{ route('roles.create') }}" class="btn btn-primary btn-sm">Novo Grupo</a>
     </div>
 </div>
@@ -32,7 +32,7 @@
                             @endforeach
                         @endif
                     </td>
-                    <td class="text-end">
+                    <td class="d-flex flex-column flex-md-row justify-content-md-end text-end gap-1">
                         @if($role->name !== 'Admin')
                             <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-warning btn-sm">
                                 <i class="bi bi-pencil"></i>

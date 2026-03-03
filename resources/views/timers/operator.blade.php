@@ -2,19 +2,19 @@
 
 @section('content')
     {{-- CABEÇALHO COM TÍTULO, RELÓGIO SERVER E BOTÃO --}}
-    <div class="row mb-4 align-items-top">
-        <div class="col-md-4">
+    <div class="d-flex flex-column flex-md-row mb-4 align-items-center gap-3 justify-content-between">
+        <div class="mb-auto">
             <h3 class="fw-bold mb-0"><i class="bi bi-stopwatch"></i> Regressiva</h3>
         </div>
 
-        <div class="col-md-4 text-center my-3 my-md-0">
-            <div class="d-inline-block bg-dark border border-secondary border-opacity-50 rounded px-4 py-1 shadow-sm">
+        <div class="mb-auto">
+            <div class="d-flex flex-column align-items-center justify-content-center bg-dark border border-secondary border-opacity-50 rounded px-4 py-1 shadow-sm">
                 <small class="d-block text-secondary fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">HORA SERVIDOR</small>
                 <div id="serverClock" class="fs-4 fw-bold font-monospace text-info">--:--:--</div>
             </div>
         </div>
 
-        <div class="col-md-4 text-end">
+        <div class="mb-auto">
             <button onclick="openStudioWindow()" class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-2">
                 <i class="bi bi-window-stack"></i> 
                 <span>Abrir Tela do Estúdio</span>

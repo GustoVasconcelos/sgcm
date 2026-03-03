@@ -1,20 +1,19 @@
 @extends('layout')
 
 @section('content')
-<div class="row mb-3">
-    <div class="col">
+<div class="d-flex flex-column flex-md-row mb-4 align-items-center gap-3 justify-content-between">
+    <div>
         <h3 class="mb-0 fw-bold"><i class="bi bi-person-fill"></i> Gerenciar Usuários</h3>
     </div>
-    <div class="col text-end">
+    <div>
         <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">Novo Usuário</a>
     </div>
 </div>
 <div class="card shadow-sm">
-    <div class="card-body">
+    <div class="card-body table-responsive-lg">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nome</th>
                     <th>Email</th>
                     <th>Grupos</th> <th>Ações</th>
@@ -23,14 +22,13 @@
             <tbody>
                 @foreach($users as $user)
                 <tr>
-                    <td>{{ $user->id }}</td>
                     <td>
                         {{ $user->name }}
                         @if(!$user->is_operator)
                             <small class="d-block text-muted" style="font-size: 0.7em;">(Fora da Escala)</small>
                         @endif
                     </td>
-                    <td>{{ $user->email }}</td>
+                    <td><span class="text-wrap">{{ $user->email }}</span></td>
                     <td>
                         {{-- Loop para exibir todos os grupos --}}
                         @foreach($user->roles as $role)
@@ -43,7 +41,7 @@
                             @endif
                         @endforeach
                     </td>
-                    <td>
+                    <td class="d-flex flex-column flex-md-row justify-content-md-end text-end gap-1">
                         <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">Editar</a>
                         
                         <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
