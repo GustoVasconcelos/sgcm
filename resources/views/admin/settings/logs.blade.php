@@ -36,11 +36,12 @@
                 <div class="card-body">
                     <form action="{{ route('logs.settings.update') }}" method="POST">
                         @csrf
-                        
+
                         <div class="mb-3">
                             <label class="form-label fw-bold">Tempo de Retenção (Dias)</label>
                             <div class="input-group">
-                                <input type="number" name="log_retention_days" class="form-control" value="{{ $retentionDays }}" min="1">
+                                <input type="number" name="log_retention_days" class="form-control"
+                                    value="{{ $retentionDays }}" min="1">
                                 <span class="input-group-text">dias</span>
                             </div>
                             <div class="form-text">
@@ -73,14 +74,15 @@
                     <i class="bi bi-exclamation-triangle-fill"></i> Zona de Perigo
                 </div>
                 <div class="card-body">
-                    
+
                     <div class="mb-4">
                         <h6 class="fw-bold text-danger">Limpeza de Antigos</h6>
                         <p class="small text-muted mb-2">
-                            Remove apenas os logs anteriores a <strong>{{ $retentionDays }} dias</strong>. 
+                            Remove apenas os logs anteriores a <strong>{{ $retentionDays }} dias</strong>.
                             Recomendado fazer periodicamente.
                         </p>
-                        <form action="{{ route('logs.settings.clean') }}" method="POST" onsubmit="return confirm('Confirma a exclusão dos logs antigos?');">
+                        <form action="{{ route('logs.settings.clean') }}" method="POST"
+                            onsubmit="return confirm('Confirma a exclusão dos logs antigos?');">
                             @csrf
                             <button type="submit" class="btn btn-outline-danger btn-sm w-100">
                                 Executar Limpeza Automática
@@ -93,15 +95,52 @@
                     <div>
                         <h6 class="fw-bold text-danger">Zerar Banco de Dados</h6>
                         <p class="small text-muted mb-2">
-                            Remove <strong>TODOS</strong> os registros. Ação irreversível. 
+                            Remove <strong>TODOS</strong> os registros. Ação irreversível.
                             Faça um backup (CSV) antes.
                         </p>
-                        <form action="{{ route('logs.settings.clear_all') }}" method="POST" onsubmit="return confirm('ATENÇÃO: Isso vai apagar TODO O HISTÓRICO do sistema. Tem certeza absoluta?');">
+
+                        {{-- Formulário sem onsubmit — submetido apenas pelo modal --}}
+                        <form id="formClearAll" action="{{ route('logs.settings.clear_all') }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-danger w-100">
+                            <input type="hidden" name="password" id="clearAllPassword">
+                            <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal"
+                                data-bs-target="#modalClearAll">
                                 <i class="bi bi-trash"></i> APAGAR TODOS OS LOGS
                             </button>
                         </form>
+                    </div>
+
+                    {{-- Modal de confirmação --}}
+                    <div class="modal fade" id="modalClearAll" tabindex="-1" aria-labelledby="modalClearAllLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-danger">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="modalClearAllLabel">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Confirmar Exclusão Total
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-danger py-2 small">
+                                        <strong>Atenção!</strong> Esta ação irá apagar <strong>TODOS</strong> os registros
+                                        de log do sistema e não pode ser desfeita.
+                                    </div>
+                                    <label for="modalPasswordInput" class="form-label fw-bold">Digite sua senha para
+                                        confirmar:</label>
+                                    <input type="password" id="modalPasswordInput" class="form-control"
+                                        placeholder="Sua senha atual" autocomplete="current-password">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" id="btnConfirmClearAll" class="btn btn-danger" disabled>
+                                        <i class="bi bi-trash"></i> Confirmar e Apagar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -109,3 +148,14 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/logs-settings.js') }}"></script>
+
+    {{-- Reabre o modal automaticamente se voltou com erro de senha --}}
+    @if ($errors->has('password'))
+        <script>
+            new bootstrap.Modal(document.getElementById('modalClearAll')).show();
+        </script>
+    @endif
+@endpush

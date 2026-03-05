@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Setting;
 use App\Models\ActionLog;
 use Carbon\Carbon;
@@ -56,10 +57,17 @@ class LogSettingsController extends Controller
     // Zona de Perigo: Limpar TUDO
     public function clearAll(Request $request)
     {
-        // Verifica confirmação extra (senha ou texto) se quiser ser muito seguro.
-        // Aqui vamos confiar no Confirm do JS e Auth Admin.
-        
-        ActionLog::truncate(); // Zera a tabela id volta a 1 (ou use delete() para manter id)
+        $request->validate([
+            'password' => 'required',
+        ], [
+            'password.required' => 'A senha é obrigatória para confirmar esta ação.',
+        ]);
+
+        if (!Hash::check($request->password, auth()->user()->password)) {
+            return back()->withErrors(['password' => 'Senha incorreta. A operação foi cancelada.']);
+        }
+
+        ActionLog::truncate(); // Zera a tabela; id volta a 1 (use delete() para manter o id)
 
         // Recria o log avisando quem apagou tudo (já que a tabela foi zerada, esse será o ID 1)
         ActionLog::register('Configurações', 'Limpeza TOTAL de Logs', [
