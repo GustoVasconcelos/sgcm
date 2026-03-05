@@ -112,6 +112,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
     Route::resource('permissions', \App\Http\Controllers\PermissionController::class);
 
     Route::get('/logs', [\App\Http\Controllers\LogController::class, 'index'])->name('logs.index');
+    Route::get('/logs/export-pdf', [\App\Http\Controllers\LogController::class, 'exportPdf'])->name('logs.export-pdf');
 
     Route::prefix('settings')->name('logs.settings.')->group(function () {
         Route::get('/', [LogSettingsController::class, 'index'])->name('index');
