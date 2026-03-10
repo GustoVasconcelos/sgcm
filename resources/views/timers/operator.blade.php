@@ -37,15 +37,16 @@
                     <form id="formRegressive">
                         <div class="mb-3">
                             <label class="form-label">Horário Alvo (Término/Início)</label>
-                            <input type="time" step="1" class="form-control form-control-lg text-center" id="targetInput" required>
+                            <input type="time" step="1" class="form-control form-control-lg text-center" id="targetInput" required
+                                   value="{{ $timer->target_time ? \Carbon\Carbon::parse($timer->target_time)->format('H:i:s') : '' }}">
                             <div class="form-text">Digite a hora exata (Ex: 08:00:00)</div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Modo / Texto</label>
                             <select class="form-select" id="modeInput">
-                                <option value="INICIO DO PGM">INICIO DO PGM</option>
-                                <option value="ENCERRAMENTO DO PGM">ENCERRAMENTO DO PGM</option>
+                                <option value="INICIO DO PGM" {{ ($timer->mode_label === 'INICIO DO PGM') ? 'selected' : '' }}>INICIO DO PGM</option>
+                                <option value="ENCERRAMENTO DO PGM" {{ ($timer->mode_label === 'ENCERRAMENTO DO PGM') ? 'selected' : '' }}>ENCERRAMENTO DO PGM</option>
                             </select>
                         </div>
 
@@ -104,7 +105,8 @@
                         
                         <div class="col-7">
                             <div class="mb-3">
-                                <input type="time" step="1" id="bkInput" class="form-control text-center font-monospace fw-bold">
+                                <input type="time" step="1" id="bkInput" class="form-control text-center font-monospace fw-bold"
+                                       value="{{ $timer->bk_target_time ? \Carbon\Carbon::parse($timer->bk_target_time)->format('H:i:s') : '' }}">
                             </div>
                             <div class="d-grid gap-2">
                                 <div class="btn-group" role="group">

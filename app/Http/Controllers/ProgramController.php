@@ -52,16 +52,32 @@ class ProgramController extends Controller
             'color' => 'nullable|string'
         ]);
 
-        // Preenche os dados novos no objeto, MAS AINDA NÃO SALVA
+        // Preenche os dados novos no objeto
         $program->fill($request->all());
 
         // --- LOG INTELIGENTE: Verificar o que mudou ---
         if ($program->isDirty()) {
-            // Pega apenas os campos alterados (ex: ['name' => 'Novo Nome', 'color' => '#ffffff'])
-            $changes = $program->getDirty();
-            
-            // Adiciona o nome do programa aos detalhes para referência
-            $logDetails = array_merge(['programa_id' => $program->id], $changes);
+            $changes  = $program->getDirty();
+            $logDetails = ['nome' => $program->name];
+
+            // Mapa de rótulos legíveis para cada campo
+            $labels = [
+                'name'             => 'nome',
+                'default_duration' => 'duração padrão',
+                'color'            => 'cor',
+            ];
+
+            foreach ($changes as $field => $newValue) {
+                $oldValue = $program->getOriginal($field);
+                $label    = $labels[$field] ?? $field;
+
+                if ($field === 'default_duration') {
+                    // default_duration é número de minutos — formata diretamente
+                    $logDetails[$label] = "{$oldValue}min ➜ {$newValue}min";
+                } else {
+                    $logDetails[$label] = "$oldValue ➜ $newValue";
+                }
+            }
 
             ActionLog::register('Programas', 'Editar Programa', $logDetails);
             
