@@ -68,10 +68,13 @@ class ScaleController extends Controller
             ActionLog::register('Escalas', 'Salvar Alterações', [
                 'dias_alterados' => implode(', ', $changedDays)
             ]);
+
+            return redirect()->route('scales.manage', $request->only(['start_date', 'end_date']))
+                         ->with('success', 'Escala atualizada!');
         }
 
         return redirect()->route('scales.manage', $request->only(['start_date', 'end_date']))
-                         ->with('success', 'Escala atualizada!');
+                         ->with('info', 'Nenhuma alteração detectada.');
     }
 
     // 4. Geração Automática (O Matemático)

@@ -227,15 +227,15 @@ class ScheduleController extends Controller
                     'programa_atual' => $schedule->program->name,
                     'alteracoes' => $logDetails
                 ]);
+
+                $schedule->save();
+
+                return redirect()->route('schedules.index')
+                                 ->with('success', 'Programa atualizado com sucesso!');
             }
-
-            $schedule->save();
-
-            return redirect()->route('schedules.index', ['date' => $request->date])
-                             ->with('success', 'Programa atualizado com sucesso!');
         }
-
-        return redirect()->route('schedules.index', ['date' => $request->date])
+        
+        return redirect()->route('schedules.index')
                          ->with('info', 'Nenhuma alteração detectada.');
     }
 }
