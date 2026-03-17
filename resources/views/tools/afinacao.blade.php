@@ -7,7 +7,7 @@
 
 <div class="row mb-3">
     <div class="col-12">
-        <h3 class="fw-bold"><i class="bi bi-stopwatch"></i> Afinação de Jornal</h3>
+        <h3 class="fw-bold"><i class="bi bi-mic"></i> Afinação de Jornal</h3>
         <small class="text-muted">Atalhos: <b>F1</b> Topo | <b>F2</b> Próximo | <b>F3</b> Anterior | <b>F4</b> Excluir Linha | <b>F5</b> Inserir Linha</small>
     </div>
 </div>

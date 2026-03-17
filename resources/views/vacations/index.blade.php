@@ -3,7 +3,7 @@
 @section('content')
 <div class="d-flex flex-column flex-md-row mb-4 align-items-center gap-3 justify-content-between">
     <div>
-        <h3 class="fw-bold"><i class="bi bi-calendar-event"></i> Controle de Férias</h3>
+        <h3 class="fw-bold"><i class="bi bi-airplane"></i> Controle de Férias</h3>
     </div>
     <div>
         <a href="{{ route('vacations.create') }}" class="btn btn-success">

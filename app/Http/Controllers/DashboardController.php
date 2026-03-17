@@ -27,7 +27,7 @@ class DashboardController extends Controller
             ],
             [
                 'title'   => 'Regressiva',
-                'desc'    => $user->hasRole('Viewer') ? 'Visualizar tela de estúdio.' : 'Controle de tempo e regressiva.',
+                'desc'    => $user->hasRole('Viewer') ? 'Visualizar regressiva.' : 'Controle de tempo e regressiva.',
                 'icon'    => 'bi-stopwatch',
                 'color'   => 'text-primary',
                 // Se for Viewer vai pro viewer, se tiver permissão de operar vai pro operator
