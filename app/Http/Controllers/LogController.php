@@ -34,7 +34,9 @@ class LogController extends Controller
         // Pega do banco ou usa 20 como padrão
         $perPage = \App\Models\Setting::get('log_pagination', 20);
         $logs = $query->paginate($perPage)->withQueryString();
-        $users = User::orderBy('name')->get();
+        $users = User::where('name', '!=', config('scale.placeholder_user')) 
+            ->orderBy('name')
+            ->get();
         
         // Pega os módulos únicos que existem no banco para preencher o select
         $modules = ActionLog::select('module')->distinct()->pluck('module');
